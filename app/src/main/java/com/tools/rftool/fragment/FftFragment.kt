@@ -1,24 +1,19 @@
 package com.tools.rftool.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.tools.rftool.R
 import com.tools.rftool.databinding.FragmentFftBinding
-import com.tools.rftool.fft.Fft
 import com.tools.rftool.repository.AppConfigurationRepository
-import com.tools.rftool.rtlsdr.IQ
-import com.tools.rftool.spectrogram.FftTimeSeriesSpectrogramAdapter
+import com.tools.rftool.ui.spectrogram.FftTimeSeriesSpectrogramAdapter
 import com.tools.rftool.viewmodel.SdrDeviceViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 @AndroidEntryPoint

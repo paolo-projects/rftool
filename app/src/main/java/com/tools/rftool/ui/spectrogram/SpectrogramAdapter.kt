@@ -1,8 +1,7 @@
-package com.tools.rftool.spectrogram
+package com.tools.rftool.ui.spectrogram
 
 import android.graphics.Bitmap
 import android.view.View
-import com.tools.rftool.rtlsdr.IQ
 
 abstract class SpectrogramAdapter {
     private var attachedView: View? = null

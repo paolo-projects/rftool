@@ -1,11 +1,8 @@
-package com.tools.rftool.spectrogram
+package com.tools.rftool.ui.spectrogram
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import androidx.collection.CircularArray
-import androidx.core.graphics.get
-import com.tools.rftool.rtlsdr.IQ
 import kotlin.math.round
 import kotlin.math.sqrt
 

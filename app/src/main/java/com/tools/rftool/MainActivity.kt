@@ -27,8 +27,10 @@ import com.tools.rftool.viewmodel.SdrDeviceViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.lang.NumberFormatException
 import javax.inject.Inject
+import kotlin.NumberFormatException
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 @AndroidEntryPoint
 class MainActivity:
@@ -58,7 +60,7 @@ class MainActivity:
 
         fragmentStateAdapter = MainActivityPagerAdapter(this, supportFragmentManager)
         binding.viewPager.adapter = fragmentStateAdapter
-        binding.viewPager.setPageTransformer(DepthPageTransformer())
+        //binding.viewPager.setPageTransformer(DepthPageTransformer())
 
         binding.bottomNavigation.setOnItemSelectedListener(navigationItemListener)
         binding.viewPager.registerOnPageChangeCallback(onPageChangeCallback)
@@ -74,6 +76,9 @@ class MainActivity:
         binding.navigationViewLayout.tfPpmError.editText?.setText(appConfiguration.ppmError.toString())
         val colorMapTextView = binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
         colorMapTextView.setText(colorMapTextView.adapter.getItem(appConfiguration.colorMap).toString(), false)
+        binding.navigationViewLayout.swAutoRec.isChecked = appConfiguration.autoRecEnabled
+        binding.navigationViewLayout.tfAutoRecTreshold.editText?.setText("%.2f".format(appConfiguration.autoRecThreshold))
+        binding.navigationViewLayout.tfAutoRecTime.editText?.setText(appConfiguration.autoRecTimeMs.toString())
 
         binding.navigationViewLayout.tfSampleRate.editText!!.setFocusLostValidator(SampleRateInputValidator(appConfiguration.sampleRate))
         binding.navigationViewLayout.tfCenterFrequency.editText!!.setFocusLostValidator(FrequencyInputValidator(appConfiguration.centerFrequency))
@@ -81,6 +86,9 @@ class MainActivity:
         binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(IntegerValidator(appConfiguration.ppmError))
 
         binding.navigationViewLayout.btnApply.setOnClickListener(onSaveNewConfiguration)
+        binding.navigationViewLayout.swAutoRec.setOnCheckedChangeListener(onAutoRecCheckChange)
+        binding.navigationViewLayout.tfAutoRecTreshold.setOnFocusChangeListener(onAutoRecThresholdFocusChange)
+        binding.navigationViewLayout.tfAutoRecTime.setOnFocusChangeListener(onAutoRecTimeFocusChange)
 
         lifecycleScope.launch {
             async {
@@ -102,6 +110,44 @@ class MainActivity:
         } else {
             onPermissionGranted(device)
         }
+    }
+
+    private val onAutoRecTimeFocusChange = { v: View, inFocus: Boolean ->
+        val minValue = 50
+        if(!inFocus) {
+            val autoRecThresholdView = v as EditText
+            try {
+                var numValue = autoRecThresholdView.text.toString().toInt()
+                if(numValue < minValue) {
+                    numValue = minValue
+                }
+                v.setText(numValue.toString())
+                appConfiguration.autoRecTimeMs = numValue
+            } catch(exc: NumberFormatException) {
+                v.setText(appConfiguration.autoRecTimeMs.toString())
+            }
+        }
+    }
+
+    private val onAutoRecThresholdFocusChange = { v: View, inFocus: Boolean ->
+        val maxValue = sqrt(127.5f*127.5f*2f)
+        if(!inFocus) {
+            val autoRecThresholdView = v as EditText
+            try {
+                var numValue = autoRecThresholdView.text.toString().toFloat()
+                if(numValue < 0 || numValue > maxValue) {
+                    numValue = maxValue
+                }
+                v.setText("%.2f".format(numValue))
+                appConfiguration.autoRecThreshold = numValue
+            } catch(exc: NumberFormatException) {
+                v.setText("%.2f".format(appConfiguration.autoRecThreshold))
+            }
+        }
+    }
+
+    private val onAutoRecCheckChange = { _: View, isChecked: Boolean ->
+        appConfiguration.autoRecEnabled = isChecked
     }
 
     private val onSaveNewConfiguration = { v: View ->
@@ -195,8 +241,8 @@ class MainActivity:
         when (level) {
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
-                sdrDeviceViewModel.stopReading()
-                Toast.makeText(this, "Low memory! Stopped sampling", Toast.LENGTH_SHORT).show()
+                //sdrDeviceViewModel.stopReading()
+                Toast.makeText(this, "Low memory!", Toast.LENGTH_SHORT).show()
             }
         }
     }

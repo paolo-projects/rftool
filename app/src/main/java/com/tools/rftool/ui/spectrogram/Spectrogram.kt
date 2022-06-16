@@ -1,4 +1,4 @@
-package com.tools.rftool.spectrogram
+package com.tools.rftool.ui.spectrogram
 
 import android.content.Context
 import android.graphics.Canvas

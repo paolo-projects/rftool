@@ -13,6 +13,9 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
         private const val PREFS_GAIN = "rf_gain"
         private const val PREFS_PPM_ERROR = "rf_ppm_error"
         private const val PREFS_COLOR_MAP = "rf_color_map"
+        private const val PREFS_AUTO_RECORD_ENABLED = "rf_auto_rec_enabled"
+        private const val PREFS_AUTO_RECORD_THRESHOLD = "rf_auto_rec_threshold"
+        private const val PREFS_AUTO_RECORD_TIME = "rf_auto_rec_time"
     }
 
     private val sharedPreferences = context.getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE)
@@ -21,6 +24,9 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
     private val defaultGain = context.resources.getInteger(R.integer.default_gain)
     private val defaultPpmError = context.resources.getInteger(R.integer.default_ppm_error)
     private val defaultColorMap = 0
+    private val defaultAutoRecEnabled = false
+    private val defaultAutoRecThreshold = 50f
+    private val defaultAutoRecTimeMs = 1000
 
     var sampleRate: Int
         get() = sharedPreferences.getInt(PREFS_SAMPLE_RATE, defaultSampleRate)
@@ -42,4 +48,15 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
         get() = sharedPreferences.getInt(PREFS_COLOR_MAP, defaultColorMap)
         set(value) = sharedPreferences.edit().putInt(PREFS_COLOR_MAP, value).apply()
 
+    var autoRecEnabled: Boolean
+        get() = sharedPreferences.getBoolean(PREFS_AUTO_RECORD_ENABLED, defaultAutoRecEnabled)
+        set(value) = sharedPreferences.edit().putBoolean(PREFS_AUTO_RECORD_ENABLED, value).apply()
+
+    var autoRecThreshold: Float
+        get() = sharedPreferences.getFloat(PREFS_AUTO_RECORD_THRESHOLD, defaultAutoRecThreshold)
+        set(value) = sharedPreferences.edit().putFloat(PREFS_AUTO_RECORD_THRESHOLD, value).apply()
+
+    var autoRecTimeMs: Int
+        get() = sharedPreferences.getInt(PREFS_AUTO_RECORD_TIME, defaultAutoRecTimeMs)
+        set(value) = sharedPreferences.edit().putInt(PREFS_AUTO_RECORD_TIME, value).apply()
 }

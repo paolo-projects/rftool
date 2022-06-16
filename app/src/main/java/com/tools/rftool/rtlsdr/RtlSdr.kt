@@ -11,13 +11,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-class RtlSdr(deviceIndex: Int, sampleRate: Int, centerFrequency: Int, ppmError: Int = 0, gain: Int = 40) {
+class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate: Int, centerFrequency: Int, ppmError: Int = 0, gain: Int = 40) {
     companion object {
         private const val TAG = "RtlSdr"
         // Used to load the 'rftool' library on application startup.
         init {
             System.loadLibrary("rftool")
         }
+    }
+
+    interface RtlSdrListener {
+        fun onFftMax(fftMax: Double)
     }
 
     open class RtlSdrError(message: String): Error(message)
@@ -80,6 +84,7 @@ class RtlSdr(deviceIndex: Int, sampleRate: Int, centerFrequency: Int, ppmError: 
      */
     private fun notifyFftAbsoluteMax(freqMax: Double) {
         Log.d(TAG, "notifyFftAbsoluteMax: max FFT absolute value is %.1f".format(freqMax))
+        listener.onFftMax(freqMax)
     }
 
     fun resizeBitmap(width: Int, height: Int) {

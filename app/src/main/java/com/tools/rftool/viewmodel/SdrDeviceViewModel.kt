@@ -20,7 +20,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 @HiltViewModel
-class SdrDeviceViewModel @Inject constructor() : ViewModel() {
+class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListener {
 
     private var rtlSdr: RtlSdr? = null
 
@@ -35,6 +35,9 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel() {
 
     private val _deviceConnected = MutableStateFlow(false)
     val deviceConnected = _deviceConnected.asStateFlow()
+
+    private val _fftSignalMax = MutableSharedFlow<Double>()
+    val fftSignalMax = _fftSignalMax.asSharedFlow()
 
     private var readThread: Thread? = null
     private var readThreadRunning = false
@@ -80,7 +83,7 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel() {
     ) {
         usbDevice = device;
         usbDeviceConnection = connection
-        rtlSdr = RtlSdr(connection.fileDescriptor, sampleRate, centerFrequency, ppmError)
+        rtlSdr = RtlSdr(connection.fileDescriptor, this, sampleRate, centerFrequency, ppmError, gain)
         this.sampleRate = sampleRate
         this.centerFrequency = centerFrequency
         this.gain = gain
@@ -174,5 +177,11 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel() {
         super.onCleared()
 
         closeDevice()
+    }
+
+    override fun onFftMax(fftMax: Double) {
+        viewModelScope.launch {
+            _fftSignalMax.emit(fftMax)
+        }
     }
 }

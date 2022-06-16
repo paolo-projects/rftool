@@ -1,14 +1,7 @@
-package com.tools.rftool.spectrogram
+package com.tools.rftool.ui.spectrogram
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.util.Log
-import androidx.collection.CircularArray
-import androidx.core.graphics.set
-import com.tools.rftool.rtlsdr.IQ
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.round
 
 class FftTimeSeriesSpectrogramAdapter() : SpectrogramAdapter() {
 
