@@ -5,6 +5,8 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -36,10 +38,6 @@ import kotlin.math.sqrt
 class MainActivity:
     AppCompatActivity(), UsbPermissionsHelper.PermissionResultListener,
     ComponentCallbacks2 {
-    companion object {
-        private const val ACTION_USB_PERMISSION = "${BuildConfig.APPLICATION_ID}.USB_PERMISSION"
-    }
-
     @Inject
     lateinit var appConfiguration: AppConfigurationRepository
 
@@ -152,38 +150,42 @@ class MainActivity:
 
     private val onSaveNewConfiguration = { v: View ->
         v.requestFocus()
-        try {
-            val sampleRate =
-                Integer.parseInt(binding.navigationViewLayout.tfSampleRate.editText!!.text.toString())
-            val centerFrequency =
-                Integer.parseInt(binding.navigationViewLayout.tfCenterFrequency.editText!!.text.toString())
-            val gain =
-                Integer.parseInt(binding.navigationViewLayout.tfGain.editText!!.text.toString())
-            val ppmError =
-                Integer.parseInt(binding.navigationViewLayout.tfPpmError.editText!!.text.toString())
+        Handler(Looper.getMainLooper()).post {
+            try {
+                val sampleRate =
+                    Integer.parseInt(binding.navigationViewLayout.tfSampleRate.editText!!.text.toString())
+                val centerFrequency =
+                    Integer.parseInt(binding.navigationViewLayout.tfCenterFrequency.editText!!.text.toString())
+                val gain =
+                    Integer.parseInt(binding.navigationViewLayout.tfGain.editText!!.text.toString())
+                val ppmError =
+                    Integer.parseInt(binding.navigationViewLayout.tfPpmError.editText!!.text.toString())
 
-            val colorMapTextView = binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
-            var colorMap = 0
-            for(i in 0 until colorMapTextView.adapter.count) {
-                if (colorMapTextView.text.toString() == colorMapTextView.adapter.getItem(i)
-                        .toString()
-                ) {
-                    colorMap = i
-                    break;
+                val colorMapTextView =
+                    binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
+                var colorMap = 0
+                for (i in 0 until colorMapTextView.adapter.count) {
+                    if (colorMapTextView.text.toString() == colorMapTextView.adapter.getItem(i)
+                            .toString()
+                    ) {
+                        colorMap = i
+                        break;
+                    }
                 }
+
+                appConfiguration.sampleRate = sampleRate
+                appConfiguration.centerFrequency = centerFrequency
+                appConfiguration.gain = gain
+                appConfiguration.ppmError = ppmError
+                appConfiguration.colorMap = colorMap
+
+                sdrDeviceViewModel.updateParams(sampleRate, centerFrequency, gain)
+                sdrDeviceViewModel.setColorMap(colorMap)
+            } catch (exc: NumberFormatException) {
+                Toast.makeText(this, "The parameters are invalid", Toast.LENGTH_SHORT).show()
             }
-
-            appConfiguration.sampleRate = sampleRate
-            appConfiguration.centerFrequency = centerFrequency
-            appConfiguration.gain = gain
-            appConfiguration.ppmError = ppmError
-            appConfiguration.colorMap = colorMap
-
-            sdrDeviceViewModel.updateParams(sampleRate, centerFrequency, gain)
-            sdrDeviceViewModel.setColorMap(colorMap)
-        } catch(exc: NumberFormatException) {
-            Toast.makeText(this, "The parameters are invalid", Toast.LENGTH_SHORT).show()
         }
+        Unit
     }
 
     private val onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {

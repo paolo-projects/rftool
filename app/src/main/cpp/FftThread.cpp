@@ -1,7 +1,7 @@
 //
 // Created by paolo on 15/06/22.
 //
-#include "fft-thread.h"
+#include "FftThread.h"
 
 FftThread::FftThread(JNIEnv* env, jobject instance, int nSamples)
     : nSamples(nSamples), env(env), instance(env->NewGlobalRef(instance)) {

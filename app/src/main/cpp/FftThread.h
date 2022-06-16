@@ -2,8 +2,8 @@
 // Created by paolo on 15/06/22.
 //
 
-#ifndef RFTOOL_FFT_THREAD_H
-#define RFTOOL_FFT_THREAD_H
+#ifndef RFTOOL_FFTTHREAD_H
+#define RFTOOL_FFTTHREAD_H
 
 #include <jni.h>
 #include <android/log.h>
@@ -69,4 +69,4 @@ private:
     jmethodID rtlSdr_notifyFftAbsoluteMax;
 };
 
-#endif //RFTOOL_FFT_THREAD_H
+#endif //RFTOOL_FFTTHREAD_H

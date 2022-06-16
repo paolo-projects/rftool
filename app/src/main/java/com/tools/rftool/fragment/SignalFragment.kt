@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.tools.rftool.R
 import com.tools.rftool.databinding.FragmentSignalBinding
+import com.tools.rftool.ui.realtimeplot.RealTimePlotAdapter
 import com.tools.rftool.viewmodel.SdrDeviceViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -19,6 +20,7 @@ class SignalFragment: Fragment() {
     private lateinit var binding: FragmentSignalBinding
 
     private val sdrDeviceViewModel by activityViewModels<SdrDeviceViewModel>()
+    private lateinit var signalPowerPlotAdapter: RealTimePlotAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,9 +34,14 @@ class SignalFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        signalPowerPlotAdapter = RealTimePlotAdapter()
+        binding.rtpSignalStrength.adapter = signalPowerPlotAdapter
+        binding.rtpSignalStrength.title = "Signal Power"
+
         lifecycleScope.launch {
             sdrDeviceViewModel.fftSignalMax.collect {
                 binding.fftPowerBar.value = it
+                signalPowerPlotAdapter.add(it)
             }
         }
     }

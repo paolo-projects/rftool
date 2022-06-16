@@ -5,6 +5,7 @@
 const char *TAG = "RfToolLib";
 rtlsdr_dev *device = nullptr;
 std::unique_ptr<FftThread> fftTrd;
+std::unique_ptr<RecorderThread> recorderThread;
 
 constexpr jdouble adcHalf = 255.0 / 2;
 std::map<libusb_error, std::string> libusbErrorCodes{
@@ -115,6 +116,8 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
     fftTrd = std::make_unique<FftThread>(env, _this, fftSamples);
     fftTrd->start();
 
+    recorderThread = std::make_unique<RecorderThread>(env);
+
     return true;
 }
 
@@ -217,6 +220,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_close(JNIEnv *env, jobject _this) {
         rtlsdr_close(device);
     }
     fftTrd.reset();
+    recorderThread.reset();
 }
 
 extern "C" JNIEXPORT jdoubleArray JNICALL
@@ -261,6 +265,19 @@ extern "C" JNIEXPORT void JNICALL
     }
 
     env->ReleaseStringUTFChars(colorMap, mapUtf);
+}
+
+extern "C" JNIEXPORT void JNICALL
+    Java_com_tools_rftool_rtlsdr_Recorder_startRecording(JNIEnv* env, jobject _this, jstring filePath) {
+    const char* pathUtf = env->GetStringUTFChars(filePath, nullptr);
+    std::string path(pathUtf);
+    env->ReleaseStringUTFChars(filePath, pathUtf);
+    recorderThread->startRecording(path);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_tools_rftool_rtlsdr_Recorder_stopRecording(JNIEnv* env, jobject _this) {
+    recorderThread->stopRecording();
 }
 
 int nearestGain(int targetGain) {
