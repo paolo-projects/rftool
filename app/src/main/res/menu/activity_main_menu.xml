@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/usb_connect"
+        android:title="Connect"
+        android:icon="@drawable/ic_baseline_usb_24"
+        app:showAsAction="ifRoom"
+        />
+    <item android:id="@+id/usb_start_stop"
+        android:title="Start"
+        android:icon="@drawable/ic_baseline_play_arrow_24"
+        app:showAsAction="ifRoom" />
+</menu>

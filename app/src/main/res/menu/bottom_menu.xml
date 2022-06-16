@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/bottom_navigation_fft"
+        android:title="FFT"
+        android:icon="@drawable/ic_baseline_analytics_24" />
+    <item
+        android:id="@+id/bottom_navigation_signal_decoder"
+        android:title="Signal"
+        android:icon="@drawable/ic_baseline_waves_24" />
+</menu>

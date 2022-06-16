@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="rtl_sdr_vid">3034</integer>
+    <integer name="rtl_sdr_pid">10296</integer>
+
+    <!-- 1.6 MHz -->
+    <integer name="default_sample_rate">1600000</integer>
+    <!-- 433.92 MHz -->
+    <integer name="default_center_frequency">433920000</integer>
+    <integer name="default_gain">38</integer>
+    <!-- 5 Ppm (f = 1 MHz -> ppm = 1 Hz) -->
+    <integer name="default_ppm_error">5</integer>
+</resources>

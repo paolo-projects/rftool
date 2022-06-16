@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">RFTool</string>
+    <string-array name="color_maps">
+        <item>Grayscale</item>
+        <item>Heat</item>
+        <item>Rainbow</item>
+    </string-array>
+</resources>

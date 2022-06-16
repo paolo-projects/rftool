@@ -1,0 +1,186 @@
+package com.tools.rftool.rtlsdr
+
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
+
+class RtlSdr(deviceIndex: Int, sampleRate: Int, centerFrequency: Int, ppmError: Int = 0, gain: Int = 40) {
+    companion object {
+        private const val TAG = "RtlSdr"
+        // Used to load the 'rftool' library on application startup.
+        init {
+            System.loadLibrary("rftool")
+        }
+    }
+
+    open class RtlSdrError(message: String): Error(message)
+    class RtlSdrClosedError(message: String): RtlSdrError(message)
+
+    private var deviceClosed = false
+    private var _bitmap: Bitmap = Bitmap.createBitmap(1024, 600, Bitmap.Config.ARGB_8888)
+    private val paint = Paint().apply {
+        color = 0xFF000000.toInt()
+    }
+
+    init {
+        val canvas = Canvas(_bitmap)
+        canvas.drawPaint(paint)
+
+        if(!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain)) {
+            throw RtlSdrError("Failed to open the SDR device")
+        }
+
+        setColorMap("heat");
+    }
+
+    private val _bitmapFlow = MutableSharedFlow<Bitmap>()
+    val bitmap = _bitmapFlow.asSharedFlow()
+
+    private val ioDispatcher = Dispatchers.IO
+
+    private external fun open(fileDescriptor: Int, sampleRate: Int, centerFrequency: Int, ppmError: Int = 0, gain: Int = 40, fftSamples: Int = 2048): Boolean
+
+    private external fun setSampleRate(sampleRate: Int): Boolean
+    private external fun getSampleRate(): Int
+
+    private external fun setCenterFrequency(centerFrequency: Int): Boolean
+    private external fun getCenterFrequency(): Int
+
+    private external fun setGain(gain: Int): Boolean
+    private external fun getGain(): Int
+
+    private external fun setPpmError(ppmError: Int): Boolean
+    private external fun getPpmError(): Int
+
+    private external fun read(size: Int): DoubleArray
+
+    private external fun setColorMap(colorMap: String): Unit
+
+    private external fun close()
+
+    // Called from JNI
+    private fun notifyBitmapChanged() {
+        CoroutineScope(ioDispatcher + Job()).launch {
+            _bitmapFlow.emit(_bitmap)
+        }
+    }
+
+    /**
+     * The rftool lib will get the absolute maximum in the fourier transform, excluding the DC bin,
+     * and call this method
+     *
+     * Called from JNI
+     */
+    private fun notifyFftAbsoluteMax(freqMax: Double) {
+        Log.d(TAG, "notifyFftAbsoluteMax: max FFT absolute value is %.1f".format(freqMax))
+    }
+
+    fun resizeBitmap(width: Int, height: Int) {
+        _bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(_bitmap)
+        canvas.drawPaint(paint)
+    }
+
+    fun setDeviceSampleRate(sampleRate: Int) {
+        if(!deviceClosed) {
+            if(!setSampleRate(sampleRate)) {
+                throw RtlSdrError("An error occurred setting the sample rate")
+            }
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun getDeviceSampleRate(): Int {
+        if(!deviceClosed) {
+            return getSampleRate()
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun setDeviceCenterFrequency(centerFrequency: Int) {
+        if(!deviceClosed) {
+            if(!setCenterFrequency(centerFrequency)) {
+                throw RtlSdrError("An error occurred setting the center frequency")
+            }
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun getDeviceCenterFrequency(): Int {
+        if(!deviceClosed) {
+            return getCenterFrequency()
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun setDevicePpmError(ppmError: Int) {
+        if(!deviceClosed) {
+            if(!setPpmError(ppmError)) {
+                throw RtlSdrError("An error occurred setting the ppm error")
+            }
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun getDevicePpmError(): Int {
+        if(!deviceClosed) {
+            return getPpmError()
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun setDeviceGain(gain: Int) {
+        if(!deviceClosed) {
+            if(!setGain(gain)) {
+                throw RtlSdrError("An error occurred setting the gain")
+            }
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun getDeviceGain(): Int {
+        if(!deviceClosed) {
+            return getGain()
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun deviceRead(size: Int): DoubleArray {
+        if(!deviceClosed) {
+            return read(size)
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun setFftColorMap(colorMap: Int) {
+        if(!deviceClosed) {
+            when (colorMap) {
+                0 -> setColorMap("grayscale")
+                1 -> setColorMap("heat")
+                2 -> setColorMap("rainbow")
+                else -> setColorMap("grayscale")
+            }
+        }
+    }
+
+    fun closeDevice() {
+        close()
+        deviceClosed = true
+    }
+}
