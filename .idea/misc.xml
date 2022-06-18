@@ -11,8 +11,12 @@
         <entry key="app/src/main/res/drawable/ic_baseline_usb_24.xml" value="0.1385" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/layout/fragment_fft.xml" value="0.18072916666666666" />
+        <entry key="app/src/main/res/layout/fragment_recording_details.xml" value="0.18072916666666666" />
+        <entry key="app/src/main/res/layout/fragment_recording_list.xml" value="0.18072916666666666" />
+        <entry key="app/src/main/res/layout/fragment_recordings.xml" value="0.1796875" />
         <entry key="app/src/main/res/layout/fragment_signal.xml" value="0.135546875" />
         <entry key="app/src/main/res/layout/navigation_side_panel.xml" value="0.165625" />
+        <entry key="app/src/main/res/layout/recyclerview_item_recording.xml" value="0.215625" />
         <entry key="app/src/main/res/menu/activity_main_menu.xml" value="0.215625" />
         <entry key="app/src/main/res/menu/bottom_menu.xml" value="0.135546875" />
         <entry key="app/src/main/res/xml/device_filter.xml" value="0.18072916666666666" />

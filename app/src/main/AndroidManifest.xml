@@ -4,8 +4,7 @@
     package="com.tools.rftool">
 
     <uses-feature android:name="android.hardware.usb.host" />
-
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".RfToolApplication"

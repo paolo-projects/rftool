@@ -2,10 +2,16 @@
 
 #include <memory>
 
+// Private variables
 const char *TAG = "RfToolLib";
 rtlsdr_dev *device = nullptr;
 std::unique_ptr<FftThread> fftTrd;
 std::unique_ptr<RecorderThread> recorderThread;
+
+std::unique_ptr<std::thread> dataReaderThread;
+int dataSize = 5120;
+bool dataReading = false;
+std::mutex rtlSdrMtx;
 
 constexpr jdouble adcHalf = 255.0 / 2;
 std::map<libusb_error, std::string> libusbErrorCodes{
@@ -42,6 +48,12 @@ std::vector<uint8_t> buffer;
 std::vector<jdouble> outDataBuffer;
 std::vector<int> gains;
 
+// Private forward declarations
+void dataReadingExecutor(JavaVM *jvm, JNIEnv *env);
+
+const std::vector<double> &readData(jint size);
+
+// Implementations
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDescriptor,
                                          jint sampleRate,
@@ -123,6 +135,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_setSampleRate(JNIEnv *env, jobject _this, jint sampleRate) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     if (rtlsdr_set_sample_rate(device, sampleRate) < 0) {
         __android_log_write(ANDROID_LOG_ERROR, TAG, "Failed to set sample rate");
         return false;
@@ -135,12 +148,14 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setSampleRate(JNIEnv *env, jobject _this, ji
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_getSampleRate(JNIEnv *env, jobject _this) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     return (jint) rtlsdr_get_sample_rate(device);
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_setCenterFrequency(JNIEnv *env, jobject _this,
                                                        jint centerFrequency) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     if (rtlsdr_set_center_freq(device, centerFrequency) < 0) {
         __android_log_write(ANDROID_LOG_ERROR, TAG, "Failed to set center frequency");
         return false;
@@ -153,11 +168,13 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setCenterFrequency(JNIEnv *env, jobject _thi
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_getCenterFrequency(JNIEnv *env, jobject _this) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     return (jint) rtlsdr_get_center_freq(device);
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_setPpmError(JNIEnv *env, jobject _this, jint ppmError) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     if (rtlsdr_set_freq_correction(device, ppmError) < 0) {
         __android_log_write(ANDROID_LOG_ERROR, TAG, "Failed to set ppm error");
         return false;
@@ -170,6 +187,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setPpmError(JNIEnv *env, jobject _this, jint
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_getPpmError(JNIEnv *env, jobject _this) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     return (jint) rtlsdr_get_freq_correction(device);
 }
 
@@ -178,6 +196,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setGain(JNIEnv *env, jobject _this, jint gai
     int res;
 
     if (gain > 0) {
+        std::unique_lock<std::mutex> lock(rtlSdrMtx);
         res = rtlsdr_set_tuner_gain_mode(device, 1);
         if (res < 0) {
             __android_log_write(ANDROID_LOG_ERROR, TAG, "Failed to enable manual gain");
@@ -197,6 +216,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setGain(JNIEnv *env, jobject _this, jint gai
             }
         }
     } else {
+        std::unique_lock<std::mutex> lock(rtlSdrMtx);
         res = rtlsdr_set_tuner_gain_mode(device, 0);
 
         if (res < 0) {
@@ -211,34 +231,84 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setGain(JNIEnv *env, jobject _this, jint gai
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_getGain(JNIEnv *env, jobject _this) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     return (jint) rtlsdr_get_tuner_gain(device);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_close(JNIEnv *env, jobject _this) {
     if (device != nullptr) {
+        if (dataReaderThread != nullptr) {
+            dataReading = false;
+            dataReaderThread->join();
+            dataReaderThread.reset();
+        }
         rtlsdr_close(device);
     }
     fftTrd.reset();
     recorderThread.reset();
 }
 
-extern "C" JNIEXPORT jdoubleArray JNICALL
-Java_com_tools_rftool_rtlsdr_RtlSdr_read(JNIEnv *env, jobject _this, jint size) {
+extern "C" JNIEXPORT void JNICALL
+Java_com_tools_rftool_rtlsdr_RtlSdr_startDataReading
+        (JNIEnv *env, jobject _this, jint size) {
+    if (device != nullptr && dataReaderThread == nullptr) {
+        dataSize = size;
+        dataReading = true;
+        JavaVM *jvm;
+        env->GetJavaVM(&jvm);
+        dataReaderThread = std::make_unique<std::thread>(dataReadingExecutor, jvm, env);
+    }
+}
+
+void dataReadingExecutor(JavaVM *jvm, JNIEnv *env) {
+    JavaVMAttachArgs args;
+    args.name = nullptr;
+    args.group = nullptr;
+    args.version = JNI_VERSION_1_6;
+    jvm->AttachCurrentThread(&env, &args);
+
+    try {
+        while (dataReading) {
+            const auto &data = readData(dataSize);
+        }
+    } catch (const std::exception &exc) {
+        __android_log_write(ANDROID_LOG_ERROR, TAG,
+                            "Exception raised while reading data. Stopped data collection");
+    }
+
+    jvm->DetachCurrentThread();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_tools_rftool_rtlsdr_RtlSdr_stopDataReading
+        (JNIEnv *env, jobject _this) {
+    if (dataReaderThread != nullptr) {
+        dataReading = false;
+        dataReaderThread->join();
+        dataReaderThread.reset();
+    }
+}
+
+const std::vector<double> &readData(jint size) {
     int goodSize = std::min((int) ceil(size / 512) * 512, 256 * (1 << 14));
     buffer.resize(goodSize);
     int bytesRead;
     int err;
 
-    if ((err = rtlsdr_read_sync(device, buffer.data(), goodSize, &bytesRead)) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "Failed to read from device. %s",
-                            libusbErrorCodes[(libusb_error) err].c_str());
-        return env->NewDoubleArray(0);
+    {
+        std::unique_lock<std::mutex> lock(rtlSdrMtx);
+        if ((err = rtlsdr_read_sync(device, buffer.data(), goodSize, &bytesRead)) < 0) {
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "Failed to read from device. %s",
+                                libusbErrorCodes[(libusb_error) err].c_str());
+            throw std::runtime_error("Failed to read from device");
+        }
     }
 
+    buffer.resize(goodSize);
     outDataBuffer.resize(goodSize);
 
-    jdoubleArray resultArray = env->NewDoubleArray(bytesRead);
+    recorderThread->appendData(buffer);
 
     for (int i = 0; i < bytesRead; i++) {
         outDataBuffer[i] = (buffer[i] - adcHalf) / adcHalf;
@@ -246,15 +316,14 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_read(JNIEnv *env, jobject _this, jint size) 
 
     fftTrd->push(outDataBuffer);
 
-    env->SetDoubleArrayRegion(resultArray, 0, goodSize, outDataBuffer.data());
-    return resultArray;
+    return outDataBuffer;
 }
 
 extern "C" JNIEXPORT void JNICALL
-    Java_com_tools_rftool_rtlsdr_RtlSdr_setColorMap(JNIEnv* env, jobject _this, jstring colorMap) {
-    const char* mapUtf = env->GetStringUTFChars(colorMap, nullptr);
+Java_com_tools_rftool_rtlsdr_RtlSdr_setColorMap(JNIEnv *env, jobject _this, jstring colorMap) {
+    const char *mapUtf = env->GetStringUTFChars(colorMap, nullptr);
 
-    if(fftTrd != nullptr) {
+    if (fftTrd != nullptr) {
         if (strcmp(mapUtf, "grayscale") == 0) {
             fftTrd->setColorMap(COLOR_MAP_GRAYSCALE);
         } else if (strcmp(mapUtf, "heat") == 0) {
@@ -268,15 +337,24 @@ extern "C" JNIEXPORT void JNICALL
 }
 
 extern "C" JNIEXPORT void JNICALL
-    Java_com_tools_rftool_rtlsdr_Recorder_startRecording(JNIEnv* env, jobject _this, jstring filePath) {
-    const char* pathUtf = env->GetStringUTFChars(filePath, nullptr);
+Java_com_tools_rftool_rtlsdr_Recorder_startRecordingTimed(JNIEnv *env, jobject _this,
+                                                          jstring filePath, jint durationMs) {
+    const char *pathUtf = env->GetStringUTFChars(filePath, nullptr);
     std::string path(pathUtf);
     env->ReleaseStringUTFChars(filePath, pathUtf);
-    recorderThread->startRecording(path);
+    recorderThread->startRecording(_this, path, durationMs);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_tools_rftool_rtlsdr_Recorder_stopRecording(JNIEnv* env, jobject _this) {
+Java_com_tools_rftool_rtlsdr_Recorder_startRecording(JNIEnv *env, jobject _this, jstring filePath) {
+    const char *pathUtf = env->GetStringUTFChars(filePath, nullptr);
+    std::string path(pathUtf);
+    env->ReleaseStringUTFChars(filePath, pathUtf);
+    recorderThread->startRecording(_this, path);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_tools_rftool_rtlsdr_Recorder_stopRecording(JNIEnv *env, jobject _this) {
     recorderThread->stopRecording();
 }
 

@@ -11,9 +11,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate: Int, centerFrequency: Int, ppmError: Int = 0, gain: Int = 40) {
+class RtlSdr(
+    deviceIndex: Int,
+    private val listener: RtlSdrListener,
+    sampleRate: Int,
+    centerFrequency: Int,
+    ppmError: Int = 0,
+    gain: Int = 40
+) {
     companion object {
         private const val TAG = "RtlSdr"
+
         // Used to load the 'rftool' library on application startup.
         init {
             System.loadLibrary("rftool")
@@ -24,8 +32,8 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
         fun onFftMax(fftMax: Double)
     }
 
-    open class RtlSdrError(message: String): Error(message)
-    class RtlSdrClosedError(message: String): RtlSdrError(message)
+    open class RtlSdrError(message: String) : Error(message)
+    class RtlSdrClosedError(message: String) : RtlSdrError(message)
 
     private var deviceClosed = false
     private var _bitmap: Bitmap = Bitmap.createBitmap(1024, 600, Bitmap.Config.ARGB_8888)
@@ -37,7 +45,7 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
         val canvas = Canvas(_bitmap)
         canvas.drawPaint(paint)
 
-        if(!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain)) {
+        if (!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain)) {
             throw RtlSdrError("Failed to open the SDR device")
         }
 
@@ -49,7 +57,14 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
 
     private val ioDispatcher = Dispatchers.IO
 
-    private external fun open(fileDescriptor: Int, sampleRate: Int, centerFrequency: Int, ppmError: Int = 0, gain: Int = 40, fftSamples: Int = 2048): Boolean
+    private external fun open(
+        fileDescriptor: Int,
+        sampleRate: Int,
+        centerFrequency: Int,
+        ppmError: Int = 0,
+        gain: Int = 40,
+        fftSamples: Int = 2048
+    ): Boolean
 
     private external fun setSampleRate(sampleRate: Int): Boolean
     private external fun getSampleRate(): Int
@@ -63,7 +78,8 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     private external fun setPpmError(ppmError: Int): Boolean
     private external fun getPpmError(): Int
 
-    private external fun read(size: Int): DoubleArray
+    private external fun startDataReading(size: Int)
+    private external fun stopDataReading()
 
     private external fun setColorMap(colorMap: String): Unit
 
@@ -94,8 +110,8 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun setDeviceSampleRate(sampleRate: Int) {
-        if(!deviceClosed) {
-            if(!setSampleRate(sampleRate)) {
+        if (!deviceClosed) {
+            if (!setSampleRate(sampleRate)) {
                 throw RtlSdrError("An error occurred setting the sample rate")
             }
         } else {
@@ -104,7 +120,7 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun getDeviceSampleRate(): Int {
-        if(!deviceClosed) {
+        if (!deviceClosed) {
             return getSampleRate()
         } else {
             throw RtlSdrClosedError("Device is closed")
@@ -112,8 +128,8 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun setDeviceCenterFrequency(centerFrequency: Int) {
-        if(!deviceClosed) {
-            if(!setCenterFrequency(centerFrequency)) {
+        if (!deviceClosed) {
+            if (!setCenterFrequency(centerFrequency)) {
                 throw RtlSdrError("An error occurred setting the center frequency")
             }
         } else {
@@ -122,7 +138,7 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun getDeviceCenterFrequency(): Int {
-        if(!deviceClosed) {
+        if (!deviceClosed) {
             return getCenterFrequency()
         } else {
             throw RtlSdrClosedError("Device is closed")
@@ -130,8 +146,8 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun setDevicePpmError(ppmError: Int) {
-        if(!deviceClosed) {
-            if(!setPpmError(ppmError)) {
+        if (!deviceClosed) {
+            if (!setPpmError(ppmError)) {
                 throw RtlSdrError("An error occurred setting the ppm error")
             }
         } else {
@@ -140,7 +156,7 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun getDevicePpmError(): Int {
-        if(!deviceClosed) {
+        if (!deviceClosed) {
             return getPpmError()
         } else {
             throw RtlSdrClosedError("Device is closed")
@@ -148,8 +164,8 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun setDeviceGain(gain: Int) {
-        if(!deviceClosed) {
-            if(!setGain(gain)) {
+        if (!deviceClosed) {
+            if (!setGain(gain)) {
                 throw RtlSdrError("An error occurred setting the gain")
             }
         } else {
@@ -158,23 +174,31 @@ class RtlSdr(deviceIndex: Int, private val listener: RtlSdrListener, sampleRate:
     }
 
     fun getDeviceGain(): Int {
-        if(!deviceClosed) {
+        if (!deviceClosed) {
             return getGain()
         } else {
             throw RtlSdrClosedError("Device is closed")
         }
     }
 
-    fun deviceRead(size: Int): DoubleArray {
-        if(!deviceClosed) {
-            return read(size)
+    fun startDeviceDataCollection(size: Int) {
+        if (!deviceClosed) {
+            startDataReading(size)
+        } else {
+            throw RtlSdrClosedError("Device is closed")
+        }
+    }
+
+    fun stopDeviceDataCollection() {
+        if (!deviceClosed) {
+            stopDataReading()
         } else {
             throw RtlSdrClosedError("Device is closed")
         }
     }
 
     fun setFftColorMap(colorMap: Int) {
-        if(!deviceClosed) {
+        if (!deviceClosed) {
             when (colorMap) {
                 0 -> setColorMap("grayscale")
                 1 -> setColorMap("heat")

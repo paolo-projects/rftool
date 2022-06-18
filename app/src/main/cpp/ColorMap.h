@@ -11,6 +11,7 @@
 
 class ColorMap {
 public:
+    virtual ~ColorMap() {}
     virtual jint getColor(double intensity) = 0;
 };
 

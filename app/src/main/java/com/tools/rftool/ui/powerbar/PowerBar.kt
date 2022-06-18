@@ -7,9 +7,7 @@ import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
 import java.util.*
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class PowerBar: View {
     companion object {
@@ -36,11 +34,16 @@ class PowerBar: View {
     private val paint = Paint().apply {
         color = 0xFFFFFFFF.toInt()
     }
+    private val redPaint = Paint().apply {
+        color = 0xFFFF0000.toInt()
+    }
 
     private val barWidth = 64
     private val dashWidth = 20
     private val textHeight = 24
     private val textPadding = 16
+
+    var treshold: Float? = null
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -85,6 +88,13 @@ class PowerBar: View {
             val valueString = "%.0f".format(value)
             canvas.drawText(valueString, barWidth.toFloat() + textPadding * 2 + dashWidth, y.toFloat() + textHeight, textPaint)
             y += textHeight + textPadding
+        }
+
+        if(treshold != null) {
+            val tresholdY = height - textHeight/2f - height * (treshold!!-min).toFloat()/(max-min)
+            if(tresholdY > 0 && tresholdY < height) {
+                canvas.drawRect(0f, max(0f, tresholdY.toFloat() - 2f), barWidth.toFloat(), min(height.toFloat(), tresholdY.toFloat() + 2f), redPaint)
+            }
         }
     }
 

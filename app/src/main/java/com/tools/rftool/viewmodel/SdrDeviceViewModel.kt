@@ -1,26 +1,26 @@
 package com.tools.rftool.viewmodel
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import androidx.lifecycle.ViewModel
-import com.tools.rftool.fft.Fft
-import com.tools.rftool.rtlsdr.IQ
+import com.tools.rftool.repository.AppConfigurationRepository
+import com.tools.rftool.rtlsdr.Recorder
 import com.tools.rftool.rtlsdr.RtlSdr
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.io.FileDescriptor
 import javax.inject.Inject
 import kotlin.concurrent.thread
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 @HiltViewModel
-class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListener {
+class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val context: Context) :
+    ViewModel(), RtlSdr.RtlSdrListener, Recorder.RecorderListener {
 
     private var rtlSdr: RtlSdr? = null
 
@@ -38,6 +38,12 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
 
     private val _fftSignalMax = MutableSharedFlow<Double>()
     val fftSignalMax = _fftSignalMax.asSharedFlow()
+
+    private val _recordingEvents = MutableSharedFlow<RecordingEvent>()
+    val recordingCompleted = _recordingEvents.asSharedFlow()
+
+    @Inject
+    lateinit var appConfigurationRepository: AppConfigurationRepository
 
     private var readThread: Thread? = null
     private var readThreadRunning = false
@@ -59,6 +65,12 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
         private set
     var gain: Int = 0
         private set
+
+    enum class RecordingEvent {
+        STARTED, COMPLETED
+    }
+
+    private val recorder = Recorder(context, this)
 
     fun permissionsGranted() {
         viewModelScope.launch {
@@ -83,7 +95,8 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
     ) {
         usbDevice = device;
         usbDeviceConnection = connection
-        rtlSdr = RtlSdr(connection.fileDescriptor, this, sampleRate, centerFrequency, ppmError, gain)
+        rtlSdr =
+            RtlSdr(connection.fileDescriptor, this, sampleRate, centerFrequency, ppmError, gain)
         this.sampleRate = sampleRate
         this.centerFrequency = centerFrequency
         this.gain = gain
@@ -98,8 +111,12 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
     }
 
     fun startReading() {
-        if (readThread == null && rtlSdr != null) {
-            readThread = thread(true, block = readTreadRunnable)
+        if (rtlSdr != null) {
+            rtlSdr?.startDeviceDataCollection(blockSize)
+
+            viewModelScope.launch {
+                _deviceConnected.emit(true)
+            }
         }
     }
 
@@ -109,15 +126,13 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
         }
 
         if (rtlSdr != null) {
-            synchronized(rtlSdr!!) {
-                rtlSdr?.setDeviceSampleRate(sampleRate)
-                rtlSdr?.setDeviceCenterFrequency(centerFrequency)
-                rtlSdr?.setDeviceGain(gain)
+            rtlSdr?.setDeviceSampleRate(sampleRate)
+            rtlSdr?.setDeviceCenterFrequency(centerFrequency)
+            rtlSdr?.setDeviceGain(gain)
 
-                this.sampleRate = sampleRate
-                this.centerFrequency = centerFrequency
-                this.gain = gain
-            }
+            this.sampleRate = sampleRate
+            this.centerFrequency = centerFrequency
+            this.gain = gain
         }
     }
 
@@ -128,36 +143,11 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
     }
 
     fun stopReading() {
-        readThreadRunning = false
-        readThread?.join()
-        readThread = null
-    }
-
-    private val readTreadRunnable = {
-        readThreadRunning = true
-
-        viewModelScope.launch {
-            _deviceConnected.emit(true)
-        }
-
-        while (readThreadRunning) {
-            synchronized(rtlSdr!!) {
-                val data = rtlSdr?.deviceRead(blockSize)
-
-                if (data != null) {
-                    viewModelScope.launch {
-                        _deviceData.emit(data)
-                    }
-                } else {
-                    readThreadRunning = false
-                }
-            }
-        }
+        rtlSdr?.stopDeviceDataCollection()
 
         viewModelScope.launch {
             _deviceConnected.emit(false)
         }
-        Unit
     }
 
     fun closeDevice() {
@@ -180,8 +170,20 @@ class SdrDeviceViewModel @Inject constructor() : ViewModel(), RtlSdr.RtlSdrListe
     }
 
     override fun onFftMax(fftMax: Double) {
+        if (appConfigurationRepository.autoRecEnabled && fftMax > appConfigurationRepository.autoRecThreshold) {
+            recorder.record(appConfigurationRepository.autoRecTimeMs, sampleRate, centerFrequency)
+            viewModelScope.launch {
+                _recordingEvents.emit(RecordingEvent.STARTED)
+            }
+        }
         viewModelScope.launch {
             _fftSignalMax.emit(fftMax)
+        }
+    }
+
+    override fun onRecordingEnded() {
+        viewModelScope.launch {
+            _recordingEvents.emit(RecordingEvent.COMPLETED)
         }
     }
 }

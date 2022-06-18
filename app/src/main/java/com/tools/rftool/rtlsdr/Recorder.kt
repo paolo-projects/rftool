@@ -5,10 +5,11 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class Recorder(private val context: Context) {
+class Recorder(private val context: Context, private val listener: RecorderListener) {
     companion object {
         init {
             System.loadLibrary("rftool")
@@ -16,11 +17,15 @@ class Recorder(private val context: Context) {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss")
     }
 
+    interface RecorderListener {
+        fun onRecordingEnded()
+    }
+
     class RecorderException(message: String): Error(message)
 
     var recordingHandler: Handler? = null
 
-    fun record(timeMs: Long, sampleRate: Int, centerFrequency: Int) {
+    fun record(timeMs: Int, sampleRate: Int, centerFrequency: Int) {
         if(recordingHandler != null) {
             return
         }
@@ -28,24 +33,27 @@ class Recorder(private val context: Context) {
         val dateTime = LocalDateTime.now().format(DATE_FORMATTER)
         val fileName =  "${dateTime}_sr_${sampleRate}_f_${centerFrequency}.complex16u"
 
-        if(Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED) {
-            throw RecorderException("External storage is unavailable")
+        val documentsDir = File(context.filesDir, "/recordings")
+        if(!documentsDir.exists()) {
+            documentsDir.mkdir()
         }
 
-        val externalDocumentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-
-        val path = "$externalDocumentsDir/$fileName"
-        startRecording(path)
-
-        recordingHandler = Handler(Looper.getMainLooper())
-        recordingHandler!!.postDelayed({
-            stopRecording()
-            recordingHandler = null
-            Toast.makeText(context, "Signal recording completed", Toast.LENGTH_SHORT).show()
-        }, timeMs)
+        val path = "$documentsDir/$fileName"
+        startRecordingTimed(path, timeMs)
     }
 
+    private external fun startRecordingTimed(filePath: String, durationMs: Int)
     private external fun startRecording(filePath: String)
 
     private external fun stopRecording()
+
+    // Called from JNI
+    private fun onRecordingStarted() {
+
+    }
+
+    // Called from JNI
+    private fun onRecordingCompleted() {
+
+    }
 }

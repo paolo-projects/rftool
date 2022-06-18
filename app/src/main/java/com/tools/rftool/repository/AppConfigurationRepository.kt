@@ -3,6 +3,14 @@ package com.tools.rftool.repository
 import android.content.Context
 import com.tools.rftool.R
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AppConfigurationRepository @Inject constructor(@ApplicationContext private val context: Context) {
@@ -27,6 +35,8 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
     private val defaultAutoRecEnabled = false
     private val defaultAutoRecThreshold = 50f
     private val defaultAutoRecTimeMs = 1000
+
+    private val dispatcher = Dispatchers.IO
 
     var sampleRate: Int
         get() = sharedPreferences.getInt(PREFS_SAMPLE_RATE, defaultSampleRate)
@@ -54,9 +64,17 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
 
     var autoRecThreshold: Float
         get() = sharedPreferences.getFloat(PREFS_AUTO_RECORD_THRESHOLD, defaultAutoRecThreshold)
-        set(value) = sharedPreferences.edit().putFloat(PREFS_AUTO_RECORD_THRESHOLD, value).apply()
+        set(value) {
+            sharedPreferences.edit().putFloat(PREFS_AUTO_RECORD_THRESHOLD, value).apply()
+            CoroutineScope(dispatcher + Job()).launch {
+                _autoRecThresholdFlow.emit(value)
+            }
+        }
 
     var autoRecTimeMs: Int
         get() = sharedPreferences.getInt(PREFS_AUTO_RECORD_TIME, defaultAutoRecTimeMs)
         set(value) = sharedPreferences.edit().putInt(PREFS_AUTO_RECORD_TIME, value).apply()
+
+    private val _autoRecThresholdFlow = MutableStateFlow(autoRecThreshold)
+    val autoRecThresholdFlow = _autoRecThresholdFlow.asStateFlow()
 }

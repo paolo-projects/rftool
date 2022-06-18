@@ -1,6 +1,8 @@
 package com.tools.rftool
 
+import android.Manifest
 import android.content.*
+import android.content.pm.PackageManager
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +16,10 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
@@ -35,7 +40,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 @AndroidEntryPoint
-class MainActivity:
+class MainActivity :
     AppCompatActivity(), UsbPermissionsHelper.PermissionResultListener,
     ComponentCallbacks2 {
     @Inject
@@ -72,21 +77,36 @@ class MainActivity:
         binding.navigationViewLayout.tfCenterFrequency.editText?.setText(appConfiguration.centerFrequency.toString())
         binding.navigationViewLayout.tfGain.editText?.setText(appConfiguration.gain.toString())
         binding.navigationViewLayout.tfPpmError.editText?.setText(appConfiguration.ppmError.toString())
-        val colorMapTextView = binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
-        colorMapTextView.setText(colorMapTextView.adapter.getItem(appConfiguration.colorMap).toString(), false)
+        val colorMapTextView =
+            binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
+        colorMapTextView.setText(
+            colorMapTextView.adapter.getItem(appConfiguration.colorMap).toString(), false
+        )
         binding.navigationViewLayout.swAutoRec.isChecked = appConfiguration.autoRecEnabled
-        binding.navigationViewLayout.tfAutoRecTreshold.editText?.setText("%.2f".format(appConfiguration.autoRecThreshold))
+        binding.navigationViewLayout.tfAutoRecTreshold.editText?.setText(
+            "%.2f".format(
+                appConfiguration.autoRecThreshold
+            )
+        )
         binding.navigationViewLayout.tfAutoRecTime.editText?.setText(appConfiguration.autoRecTimeMs.toString())
 
-        binding.navigationViewLayout.tfSampleRate.editText!!.setFocusLostValidator(SampleRateInputValidator(appConfiguration.sampleRate))
-        binding.navigationViewLayout.tfCenterFrequency.editText!!.setFocusLostValidator(FrequencyInputValidator(appConfiguration.centerFrequency))
-        binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(GreaterThanIntegerValidator(0, appConfiguration.gain))
-        binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(IntegerValidator(appConfiguration.ppmError))
+        binding.navigationViewLayout.tfSampleRate.editText!!.setFocusLostValidator(
+            SampleRateInputValidator(appConfiguration.sampleRate)
+        )
+        binding.navigationViewLayout.tfCenterFrequency.editText!!.setFocusLostValidator(
+            FrequencyInputValidator(appConfiguration.centerFrequency)
+        )
+        binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(
+            GreaterThanIntegerValidator(0, appConfiguration.gain)
+        )
+        binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(
+            IntegerValidator(
+                appConfiguration.ppmError
+            )
+        )
 
-        binding.navigationViewLayout.btnApply.setOnClickListener(onSaveNewConfiguration)
-        binding.navigationViewLayout.swAutoRec.setOnCheckedChangeListener(onAutoRecCheckChange)
-        binding.navigationViewLayout.tfAutoRecTreshold.setOnFocusChangeListener(onAutoRecThresholdFocusChange)
-        binding.navigationViewLayout.tfAutoRecTime.setOnFocusChangeListener(onAutoRecTimeFocusChange)
+        binding.navigationViewLayout.btnRfApply.setOnClickListener(onSaveNewConfiguration)
+        binding.navigationViewLayout.btnAutoRecApply.setOnClickListener(onAutoRecApply)
 
         lifecycleScope.launch {
             async {
@@ -97,6 +117,23 @@ class MainActivity:
             async {
                 sdrDeviceViewModel.devicePermissionsStatus.collect {
                     invalidateOptionsMenu()
+                }
+            }
+            async {
+                sdrDeviceViewModel.recordingCompleted.collect {
+                    when (it) {
+                        SdrDeviceViewModel.RecordingEvent.STARTED -> Toast.makeText(
+                            this@MainActivity,
+                            "Signal recording started",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        SdrDeviceViewModel.RecordingEvent.COMPLETED
+                        -> Toast.makeText(
+                            this@MainActivity,
+                            "Signal recording completed",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         }
@@ -110,42 +147,37 @@ class MainActivity:
         }
     }
 
-    private val onAutoRecTimeFocusChange = { v: View, inFocus: Boolean ->
-        val minValue = 50
-        if(!inFocus) {
-            val autoRecThresholdView = v as EditText
-            try {
-                var numValue = autoRecThresholdView.text.toString().toInt()
-                if(numValue < minValue) {
-                    numValue = minValue
-                }
-                v.setText(numValue.toString())
-                appConfiguration.autoRecTimeMs = numValue
-            } catch(exc: NumberFormatException) {
-                v.setText(appConfiguration.autoRecTimeMs.toString())
-            }
-        }
-    }
+    private val onAutoRecApply = { _: View ->
+        appConfiguration.autoRecEnabled = binding.navigationViewLayout.swAutoRec.isChecked
 
-    private val onAutoRecThresholdFocusChange = { v: View, inFocus: Boolean ->
-        val maxValue = sqrt(127.5f*127.5f*2f)
-        if(!inFocus) {
-            val autoRecThresholdView = v as EditText
-            try {
-                var numValue = autoRecThresholdView.text.toString().toFloat()
-                if(numValue < 0 || numValue > maxValue) {
-                    numValue = maxValue
-                }
-                v.setText("%.2f".format(numValue))
-                appConfiguration.autoRecThreshold = numValue
-            } catch(exc: NumberFormatException) {
-                v.setText("%.2f".format(appConfiguration.autoRecThreshold))
+        try {
+            var numValue =
+                binding.navigationViewLayout.tfAutoRecTreshold.editText!!.text.toString().replace(",", ".").toFloat()
+            if (numValue < 0) {
+                numValue = 50f
             }
+            binding.navigationViewLayout.tfAutoRecTreshold.editText!!.setText("%.2f".format(numValue))
+            appConfiguration.autoRecThreshold = numValue
+        } catch (exc: NumberFormatException) {
+            binding.navigationViewLayout.tfAutoRecTreshold.editText!!.setText(
+                "%.2f".format(
+                    appConfiguration.autoRecThreshold
+                )
+            )
         }
-    }
 
-    private val onAutoRecCheckChange = { _: View, isChecked: Boolean ->
-        appConfiguration.autoRecEnabled = isChecked
+        val minTimeValue = 50
+        try {
+            var numValue =
+                binding.navigationViewLayout.tfAutoRecTime.editText!!.text.toString().toInt()
+            if (numValue < minTimeValue) {
+                numValue = minTimeValue
+            }
+            binding.navigationViewLayout.tfAutoRecTime.editText!!.setText(numValue.toString())
+            appConfiguration.autoRecTimeMs = numValue
+        } catch (exc: NumberFormatException) {
+            binding.navigationViewLayout.tfAutoRecTime.editText!!.setText(appConfiguration.autoRecTimeMs.toString())
+        }
     }
 
     private val onSaveNewConfiguration = { v: View ->
@@ -169,7 +201,7 @@ class MainActivity:
                             .toString()
                     ) {
                         colorMap = i
-                        break;
+                        break
                     }
                 }
 
@@ -194,6 +226,7 @@ class MainActivity:
             binding.bottomNavigation.selectedItemId = when (position) {
                 0 -> R.id.bottom_navigation_fft
                 1 -> R.id.bottom_navigation_signal_decoder
+                2 -> R.id.bottom_navigation_recordings
                 else -> 0
             }
         }
@@ -207,6 +240,10 @@ class MainActivity:
             }
             R.id.bottom_navigation_signal_decoder -> {
                 binding.viewPager.currentItem = 1
+                true
+            }
+            R.id.bottom_navigation_recordings -> {
+                binding.viewPager.currentItem = 2
                 true
             }
             else -> false
