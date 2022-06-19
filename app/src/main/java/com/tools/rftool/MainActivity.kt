@@ -43,8 +43,7 @@ import kotlin.math.sqrt
 
 @AndroidEntryPoint
 class MainActivity :
-    AppCompatActivity(), UsbPermissionsHelper.PermissionResultListener,
-    ComponentCallbacks2 {
+    AppCompatActivity(), UsbPermissionsHelper.PermissionResultListener{
     @Inject
     lateinit var appConfiguration: AppConfigurationRepository
 
@@ -295,16 +294,6 @@ class MainActivity :
     override fun onDestroy() {
         super.onDestroy()
         sdrDeviceViewModel.closeDevice()
-    }
-
-    override fun onTrimMemory(level: Int) {
-        when (level) {
-            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
-            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
-                //sdrDeviceViewModel.stopReading()
-                Toast.makeText(this, "Low memory!", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun attemptConnectDevice() {
