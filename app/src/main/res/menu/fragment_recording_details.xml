@@ -6,4 +6,9 @@
         android:icon="@drawable/ic_baseline_share_24"
         android:title="Share"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/delete_entry"
+        android:icon="@drawable/ic_baseline_delete_24"
+        android:title="Delete"
+        app:showAsAction="never" />
 </menu>

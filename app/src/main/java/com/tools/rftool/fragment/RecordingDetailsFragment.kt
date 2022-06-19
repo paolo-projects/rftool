@@ -1,5 +1,6 @@
 package com.tools.rftool.fragment
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -9,6 +10,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.github.mikephil.charting.animation.ChartAnimator
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -24,6 +26,7 @@ import com.tools.rftool.repository.AppConfigurationRepository
 import com.tools.rftool.ui.chart.FastLineRenderer
 import com.tools.rftool.util.radio.SignalDecoder
 import com.tools.rftool.util.text.DisplayUtils
+import com.tools.rftool.viewmodel.RecordingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.*
 import java.time.format.DateTimeFormatter
@@ -58,7 +61,9 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
     @Inject
     lateinit var appConfiguration: AppConfigurationRepository
 
-    lateinit var displayedEntry: Recording
+    private val recordingsViewModel by activityViewModels<RecordingsViewModel>()
+
+    private lateinit var displayedEntry: Recording
     private var totalSlices: Int = 0
     private var currentSliceIndex = 0
 
@@ -190,29 +195,43 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId) {
             R.id.share -> {
-                if(displayedEntry != null) {
-                    val file =
-                        File("${requireContext().filesDir}/recordings", displayedEntry.fileName)
-                    try {
-                        val fileUri = FileProvider.getUriForFile(
-                            requireContext(),
-                            "com.tools.rftool.fileprovider",
-                            file
-                        )
-                        if(fileUri != null) {
-                            requireContext().startActivity(Intent(Intent.ACTION_SEND).apply {
-                                putExtra(Intent.EXTRA_STREAM, fileUri)
-                                type = "application/octet-stream"
-                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            })
-                        }
-                    } catch (e: IllegalArgumentException) {
-                        Toast.makeText(requireContext(), "Can't share the file to external apps", Toast.LENGTH_SHORT).show()
+                val file =
+                    File("${requireContext().filesDir}/recordings", displayedEntry.fileName)
+                try {
+                    val fileUri = FileProvider.getUriForFile(
+                        requireContext(),
+                        "com.tools.rftool.fileprovider",
+                        file
+                    )
+                    if(fileUri != null) {
+                        requireContext().startActivity(Intent(Intent.ACTION_SEND).apply {
+                            putExtra(Intent.EXTRA_STREAM, fileUri)
+                            type = "application/octet-stream"
+                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        })
                     }
+                } catch (e: IllegalArgumentException) {
+                    Toast.makeText(requireContext(), "Can't share the file to external apps", Toast.LENGTH_SHORT).show()
+                }
+                true
+            }
+            R.id.delete_entry -> {
+                askForDeleteConfirm {
+                    recordingsViewModel.deleteRecording(displayedEntry)
+                    parentFragmentManager.popBackStack()
                 }
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun askForDeleteConfirm(onDelete: () -> Unit)  {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Deleting current recording")
+            .setMessage("Do you really want to delete the current recording?")
+            .setNegativeButton("No") { _, _ -> }
+            .setPositiveButton("Yes") { _, _ -> onDelete() }
+            .show()
     }
 }
