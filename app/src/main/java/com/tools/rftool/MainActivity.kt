@@ -8,6 +8,7 @@ import android.hardware.usb.UsbManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
@@ -28,6 +29,7 @@ import com.tools.rftool.adapter.MainActivityPagerAdapter
 import com.tools.rftool.databinding.ActivityMainBinding
 import com.tools.rftool.permissions.UsbPermissionsHelper
 import com.tools.rftool.repository.AppConfigurationRepository
+import com.tools.rftool.service.FileSystemWatcherService
 import com.tools.rftool.ui.DepthPageTransformer
 import com.tools.rftool.util.validator.*
 import com.tools.rftool.viewmodel.SdrDeviceViewModel
@@ -145,6 +147,25 @@ class MainActivity :
         } else {
             onPermissionGranted(device)
         }
+    }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+        }
+        override fun onServiceDisconnected(name: ComponentName?) {
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Intent(this, FileSystemWatcherService::class.java).also {
+            bindService(it, serviceConnection, BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(serviceConnection)
     }
 
     private val onAutoRecApply = { _: View ->

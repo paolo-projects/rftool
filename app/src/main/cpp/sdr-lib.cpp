@@ -50,6 +50,7 @@ std::vector<int> gains;
 
 // Private forward declarations
 void dataReadingExecutor(JavaVM *jvm, JNIEnv *env);
+void restoreDataSize();
 
 const std::vector<double> &readData(jint size);
 
@@ -128,7 +129,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
     fftTrd = std::make_unique<FftThread>(env, _this, fftSamples);
     fftTrd->start();
 
-    recorderThread = std::make_unique<RecorderThread>(env);
+    recorderThread = std::make_unique<RecorderThread>(env, restoreDataSize);
 
     return true;
 }
@@ -339,10 +340,14 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setColorMap(JNIEnv *env, jobject _this, jstr
 extern "C" JNIEXPORT void JNICALL
 Java_com_tools_rftool_rtlsdr_Recorder_startRecordingTimed(JNIEnv *env, jobject _this,
                                                           jstring filePath, jint durationMs) {
+    std::unique_lock<std::mutex> lock(rtlSdrMtx);
     const char *pathUtf = env->GetStringUTFChars(filePath, nullptr);
     std::string path(pathUtf);
     env->ReleaseStringUTFChars(filePath, pathUtf);
-    recorderThread->startRecording(_this, path, durationMs);
+
+    jobject globalThis = env->NewGlobalRef(_this);
+    dataSize = int(rtlsdr_get_sample_rate(device) * std::min(durationMs, 1000) / 1000.0);
+    recorderThread->startRecording(env, globalThis, path, durationMs);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -350,12 +355,14 @@ Java_com_tools_rftool_rtlsdr_Recorder_startRecording(JNIEnv *env, jobject _this,
     const char *pathUtf = env->GetStringUTFChars(filePath, nullptr);
     std::string path(pathUtf);
     env->ReleaseStringUTFChars(filePath, pathUtf);
-    recorderThread->startRecording(_this, path);
+
+    jobject globalThis = env->NewGlobalRef(_this);
+    recorderThread->startRecording(env, globalThis, path);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_tools_rftool_rtlsdr_Recorder_stopRecording(JNIEnv *env, jobject _this) {
-    recorderThread->stopRecording();
+    recorderThread->stopRecording(env);
 }
 
 int nearestGain(int targetGain) {
@@ -376,4 +383,8 @@ int nearestGain(int targetGain) {
     }
 
     return nearest;
+}
+
+void restoreDataSize() {
+    dataSize = 5120;
 }

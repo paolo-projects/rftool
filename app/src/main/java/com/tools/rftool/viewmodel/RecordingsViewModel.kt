@@ -9,11 +9,14 @@ import java.io.File
 import java.io.FilenameFilter
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlin.streams.toList
 
 @HiltViewModel
-class RecordingsViewModel @Inject constructor(@ApplicationContext private val context: Context) : ViewModel() {
+class RecordingsViewModel @Inject constructor(@ApplicationContext private val context: Context) :
+    ViewModel() {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss")
         private val FILE_NAME_PATTERN =
@@ -38,7 +41,7 @@ class RecordingsViewModel @Inject constructor(@ApplicationContext private val co
         val recordings = ArrayList<Recording>()
         val recordingsDir = File(context.filesDir, "recordings")
 
-        if(recordingsDir.exists()) {
+        if (recordingsDir.exists()) {
             val recordingFiles = recordingsDir.listFiles { _, name ->
                 FILE_NAME_PATTERN.matches(
                     name
@@ -56,7 +59,19 @@ class RecordingsViewModel @Inject constructor(@ApplicationContext private val co
             }
         }
 
+        recordings.sortWith { o1, o2 ->
+            (o2.date.toEpochSecond(ZoneOffset.UTC) - o1.date.toEpochSecond(ZoneOffset.UTC)).toInt()
+        }
+
         return recordings
+    }
+
+    fun deleteRecording(recording: Recording): Boolean {
+        val file = File("${context.filesDir}/recordings", recording.fileName)
+        if (file.exists()) {
+            return file.delete()
+        }
+        return false
     }
 
     fun openRecordingDetails(recording: Recording) {

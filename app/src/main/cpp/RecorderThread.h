@@ -13,18 +13,17 @@
 #include <thread>
 #include <jni.h>
 #include <chrono>
+#include <functional>
 #include <android/log.h>
-
-#include "Optional.h"
 
 class RecorderThread {
 public:
-    RecorderThread(JNIEnv* env);
+    RecorderThread(JNIEnv* env, std::function<void()> restoreOriginalSize);
     ~RecorderThread();
 
-    void startRecording(jobject recorderInstance, const std::string& fileName);
-    void startRecording(jobject recorderInstance, const std::string& fileName, long durationMs);
-    void stopRecording();
+    void startRecording(JNIEnv* env,jobject recorderInstance, const std::string& fileName);
+    void startRecording(JNIEnv* env,jobject recorderInstance, const std::string& fileName, long durationMs);
+    void stopRecording(JNIEnv* env);
 
     void appendData(const std::vector<uint8_t>& data);
 private:
@@ -32,13 +31,14 @@ private:
 
     JNIEnv* env;
     JavaVM* jvm{};
+    std::function<void()> restoreOriginalSize;
     FILE* fileHandle = nullptr;
     std::queue<std::vector<uint8_t>> queuedData;
     std::mutex mtx;
     std::condition_variable cv;
     bool recorderThreadRunning = false;
     std::unique_ptr<std::thread> recorderThread;
-    Optional<long> recordingDuration {};
+    long recordingDuration = -1;
     std::chrono::time_point<std::chrono::system_clock> recordingStartTime;
 
     // Java(Kotlin) fields,methods,classes

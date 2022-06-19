@@ -4,8 +4,8 @@
 
 #include "RecorderThread.h"
 
-RecorderThread::RecorderThread(JNIEnv *env)
-        : env(env) {
+RecorderThread::RecorderThread(JNIEnv *env, std::function<void()> restoreOriginalSize)
+        : env(env), restoreOriginalSize(restoreOriginalSize) {
     env->GetJavaVM(&jvm);
 
     jclass recorderClass = env->FindClass("com/tools/rftool/rtlsdr/Recorder");
@@ -24,13 +24,13 @@ RecorderThread::~RecorderThread() {
     }
 }
 
-void RecorderThread::startRecording(jobject instance, const std::string &fileName) {
+void RecorderThread::startRecording(JNIEnv* currentEnv, jobject instance, const std::string &fileName) {
     if (fileHandle == nullptr) {
         if(recorderInstance != nullptr) {
-            env->DeleteGlobalRef(recorderInstance);
+            currentEnv->DeleteGlobalRef(recorderInstance);
         }
-        recorderInstance = env->NewGlobalRef(instance);
-        recordingDuration = {};
+        recorderInstance = instance;
+        recordingDuration = -1;
 
         std::unique_lock<std::mutex> lock(mtx);
         fileHandle = fopen(fileName.c_str(), "wb");
@@ -41,16 +41,16 @@ void RecorderThread::startRecording(jobject instance, const std::string &fileNam
             __android_log_print(ANDROID_LOG_ERROR, TAG, "Error opening file: %s", fileName.c_str());
         }
 
-        env->CallVoidMethod(recorderInstance, recorder_onRecordingStarted);
+        currentEnv->CallVoidMethod(recorderInstance, recorder_onRecordingStarted);
     }
 }
 
-void RecorderThread::startRecording(jobject instance, const std::string &fileName, long durationMs) {
+void RecorderThread::startRecording(JNIEnv* currentEnv, jobject instance, const std::string &fileName, long durationMs) {
     if (fileHandle == nullptr) {
         if(recorderInstance != nullptr) {
-            env->DeleteGlobalRef(recorderInstance);
+            currentEnv->DeleteGlobalRef(recorderInstance);
         }
-        recorderInstance = env->NewGlobalRef(instance);
+        recorderInstance = instance;
 
         recordingDuration = durationMs;
         recordingStartTime = std::chrono::system_clock::now();
@@ -64,20 +64,21 @@ void RecorderThread::startRecording(jobject instance, const std::string &fileNam
             __android_log_print(ANDROID_LOG_ERROR, TAG, "Error opening file: %s", fileName.c_str());
         }
 
-        env->CallVoidMethod(recorderInstance, recorder_onRecordingStarted);
+        currentEnv->CallVoidMethod(recorderInstance, recorder_onRecordingStarted);
     }
 }
 
-void RecorderThread::stopRecording() {
+void RecorderThread::stopRecording(JNIEnv* currentEnv) {
     if (fileHandle != nullptr) {
         std::unique_lock<std::mutex> lock(mtx);
         fclose(fileHandle);
         fileHandle = nullptr;
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "File recording closed");
+        restoreOriginalSize();
 
         if(recorderInstance != nullptr) {
-            env->CallVoidMethod(recorderInstance, recorder_onRecordingCompleted);
-            env->DeleteGlobalRef(recorderInstance);
+            currentEnv->CallVoidMethod(recorderInstance, recorder_onRecordingCompleted);
+            currentEnv->DeleteGlobalRef(recorderInstance);
             recorderInstance = nullptr;
         }
     }
@@ -114,9 +115,19 @@ void RecorderThread::executor() {
         }
 
         auto nowTime = std::chrono::system_clock::now();
-        if (!recordingDuration.isEmpty() && std::chrono::duration_cast<std::chrono::milliseconds>(
-                nowTime - recordingStartTime).count() > recordingDuration.get()) {
-            stopRecording();
+        if (recordingDuration > 0 && std::chrono::duration_cast<std::chrono::milliseconds>(
+                nowTime - recordingStartTime).count() > recordingDuration) {
+            __android_log_write(ANDROID_LOG_DEBUG, TAG, "Recording time elapsed. Stopping...");
+            fclose(fileHandle);
+            fileHandle = nullptr;
+            __android_log_print(ANDROID_LOG_DEBUG, TAG, "File recording closed");
+            restoreOriginalSize();
+
+            if(recorderInstance != nullptr) {
+                env->CallVoidMethod(recorderInstance, recorder_onRecordingCompleted);
+                env->DeleteGlobalRef(recorderInstance);
+                recorderInstance = nullptr;
+            }
         }
     }
 
