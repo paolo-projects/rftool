@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.animation.ChartAnimator
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -24,10 +25,13 @@ import com.tools.rftool.databinding.FragmentRecordingDetailsBinding
 import com.tools.rftool.model.Recording
 import com.tools.rftool.repository.AppConfigurationRepository
 import com.tools.rftool.ui.chart.FastLineRenderer
+import com.tools.rftool.ui.chart.SignalAnalysisAdapter
 import com.tools.rftool.util.radio.SignalDecoder
 import com.tools.rftool.util.text.DisplayUtils
 import com.tools.rftool.viewmodel.RecordingsViewModel
+import com.tools.signalanalysis.adapter.SignalDataPoint
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.*
 import java.io.*
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -52,11 +56,12 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
         }
 
         private val DATE_FORMATTER_DISPLAY = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-        private const val SLICE_SIZE = 172000
     }
 
     private lateinit var binding: FragmentRecordingDetailsBinding
     private lateinit var signalDecoder: SignalDecoder
+    private val signalAnalysisAdapter = SignalAnalysisAdapter()
+    private val dataLoadDispatcher = Dispatchers.IO
 
     @Inject
     lateinit var appConfiguration: AppConfigurationRepository
@@ -64,8 +69,6 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
     private val recordingsViewModel by activityViewModels<RecordingsViewModel>()
 
     private lateinit var displayedEntry: Recording
-    private var totalSlices: Int = 0
-    private var currentSliceIndex = 0
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -107,28 +110,30 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
                 DisplayUtils.formatFrequencyHumanReadable(entry.centerFrequency)
             binding.tvSampleLength.text =
                 DisplayUtils.formatDurationHumanReadable(entry.size.toFloat() / (2 * entry.sampleRate))
-            totalSlices = ceil(displayedEntry.size.toFloat() / (2 * SLICE_SIZE)).toInt()
-            createChart()
-        }
 
-        binding.btnPreviousSlice.setOnClickListener(previousSliceClick)
-        binding.btnNextSlice.setOnClickListener(nextSliceClick)
+            CoroutineScope(dataLoadDispatcher + Job()).launch {
+                createChart()
+                withContext(Dispatchers.Main) {
+                    binding.shimmerLayout.hideShimmer()
+                    binding.chSignal.invalidate()
+                }
+            }
+        } else {
+            binding.shimmerLayout.hideShimmer()
+        }
     }
 
-    private fun readFile(file: File, sliceIndex: Int): List<Entry> {
-        val data = ArrayList<Entry>()
+    private fun readFile(file: File): List<SignalDataPoint> {
+        val data = ArrayList<SignalDataPoint>()
 
-        val offset: Long = sliceIndex.toLong() * SLICE_SIZE
-        val dataSize = min((file.length() - offset).toInt(), SLICE_SIZE)
-        val bytes = ByteArray(dataSize)
+        val bytes: ByteArray
         FileInputStream(file).use { stream ->
-            stream.skip(offset)
-            stream.read(bytes)
+            bytes = stream.readBytes()
         }
         val result = signalDecoder.decode(bytes)
 
         for (i in result.indices) {
-            data.add(Entry(i.toFloat(), result[i].toFloat()))
+            data.add(SignalDataPoint(i.toLong(), result[i]))
         }
 
         return data
@@ -145,47 +150,11 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
         signalDecoder =
             SignalDecoder(displayedEntry.sampleRate, appConfiguration.autoRecThreshold.toDouble())
         val file = File("${requireContext().filesDir}/recordings", displayedEntry.fileName)
-        val data = readFile(file, currentSliceIndex)
+        val data = readFile(file)
 
-        /*binding.chSignal.renderer = FastLineRenderer(
-            binding.chSignal,
-            binding.chSignal.animator,
-            binding.chSignal.viewPortHandler
-        )*/
-        val chartData = LineData(LineDataSet(data, "Signal").apply {
-            setDrawCircles(false)
-        })
+        signalAnalysisAdapter.add(data)
 
-        binding.chSignal.data = chartData
-        updateSliceButtons()
-    }
-
-    private fun updateChart() {
-        signalDecoder =
-            SignalDecoder(displayedEntry.sampleRate, appConfiguration.autoRecThreshold.toDouble())
-        val file = File("${requireContext().filesDir}/recordings", displayedEntry.fileName)
-        val data = readFile(file, currentSliceIndex)
-        binding.chSignal.data.dataSets.clear()
-        binding.chSignal.data.dataSets.add(LineDataSet(data, "Signal").apply {
-            setDrawCircles(false)
-        })
-        binding.chSignal.invalidate()
-        updateSliceButtons()
-    }
-
-    private val previousSliceClick = { _: View ->
-        currentSliceIndex = (currentSliceIndex - 1).coerceAtLeast(0)
-        updateChart()
-    }
-
-    private val nextSliceClick = { _: View ->
-        currentSliceIndex = (currentSliceIndex + 1).coerceAtMost(totalSlices - 1)
-        updateChart()
-    }
-
-    private fun updateSliceButtons() {
-        binding.btnPreviousSlice.isEnabled = currentSliceIndex > 0
-        binding.btnNextSlice.isEnabled = currentSliceIndex < totalSlices - 1
+        binding.chSignal.adapter = signalAnalysisAdapter
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -193,17 +162,17 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId) {
+        return when (item.itemId) {
             R.id.share -> {
                 val file =
                     File("${requireContext().filesDir}/recordings", displayedEntry.fileName)
                 try {
                     val fileUri = FileProvider.getUriForFile(
                         requireContext(),
-                        "com.tools.rftool.fileprovider",
+                        getString(R.string.file_provider_authority),
                         file
                     )
-                    if(fileUri != null) {
+                    if (fileUri != null) {
                         requireContext().startActivity(Intent(Intent.ACTION_SEND).apply {
                             putExtra(Intent.EXTRA_STREAM, fileUri)
                             type = "application/octet-stream"
@@ -211,7 +180,11 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
                         })
                     }
                 } catch (e: IllegalArgumentException) {
-                    Toast.makeText(requireContext(), "Can't share the file to external apps", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.error_file_sharing,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
                 true
             }
@@ -226,12 +199,12 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
         }
     }
 
-    private fun askForDeleteConfirm(onDelete: () -> Unit)  {
+    private fun askForDeleteConfirm(onDelete: () -> Unit) {
         AlertDialog.Builder(requireContext())
-            .setTitle("Deleting current recording")
-            .setMessage("Do you really want to delete the current recording?")
-            .setNegativeButton("No") { _, _ -> }
-            .setPositiveButton("Yes") { _, _ -> onDelete() }
+            .setTitle(R.string.confirm_delete_recording_title)
+            .setMessage(R.string.confirm_delete_recording_message)
+            .setNegativeButton(R.string.confirm_no) { _, _ -> }
+            .setPositiveButton(R.string.confirm_yes) { _, _ -> onDelete() }
             .show()
     }
 }

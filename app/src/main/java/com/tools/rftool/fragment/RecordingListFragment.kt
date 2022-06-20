@@ -95,8 +95,7 @@ class RecordingListFragment private constructor() : Fragment(), RecordingsRecycl
 
             val selectionSize = tracker.selection.size()
             if (selectionSize > 0) {
-                actionMode?.title = "%d selected recordings".format(selectionSize)
-                actionMode?.invalidate()
+                actionMode?.title = getString(R.string.actionmode_selected_recordings, selectionSize)
             } else {
                 actionMode?.finish()
             }
@@ -122,36 +121,37 @@ class RecordingListFragment private constructor() : Fragment(), RecordingsRecycl
         }
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            menu.findItem(R.id.recordings_share).isVisible = tracker.selection.size() == 1
             return true
         }
 
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             return when (item.itemId) {
                 R.id.recordings_share -> {
-                    tracker.selection.firstOrNull()?.also {
-                        val entry = recordingsRecyclerAdapter.get(it)
-                        if(entry != null) {
-                            val file =
-                                File("${requireContext().filesDir}/recordings", entry.fileName)
-                            try {
-                                val fileUri = FileProvider.getUriForFile(
-                                    requireContext(),
-                                    "com.tools.rftool.fileprovider",
-                                    file
-                                )
-                                if(fileUri != null) {
-                                    requireContext().startActivity(Intent(Intent.ACTION_SEND).apply {
-                                        putExtra(Intent.EXTRA_STREAM, fileUri)
-                                        type = "application/octet-stream"
-                                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                    })
-                                }
-                            } catch (e: IllegalArgumentException) {
-                                Toast.makeText(requireContext(), "Can't share the file to external apps", Toast.LENGTH_SHORT).show()
-                            }
+                    val zipFile = recordingsViewModel.createZipFile(tracker.selection.map {
+                        recordingsRecyclerAdapter.get(it)!!
+                    })
+                    try {
+                        val fileUri = FileProvider.getUriForFile(
+                            requireContext(),
+                            getString(R.string.file_provider_authority),
+                            zipFile
+                        )
+                        if (fileUri != null) {
+                            requireContext().startActivity(Intent(Intent.ACTION_SEND).apply {
+                                putExtra(Intent.EXTRA_STREAM, fileUri)
+                                type = "application/zip"
+                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            })
                         }
+                    } catch (e: IllegalArgumentException) {
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.error_file_sharing,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
+                    tracker.clearSelection()
+                    actionMode?.finish()
                     true
                 }
                 R.id.recordings_delete_selection -> {
@@ -171,10 +171,11 @@ class RecordingListFragment private constructor() : Fragment(), RecordingsRecycl
                         if (!result) {
                             Toast.makeText(
                                 requireContext(),
-                                "Some entries could not be deleted",
+                                R.string.error_entries_delete_failed,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+                        tracker.clearSelection()
                         actionMode?.finish()
                     }
                     true
@@ -198,10 +199,11 @@ class RecordingListFragment private constructor() : Fragment(), RecordingsRecycl
                         if (!result) {
                             Toast.makeText(
                                 requireContext(),
-                                "Some entries could not be deleted",
+                                R.string.error_entries_delete_failed,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+                        tracker.clearSelection()
                         actionMode?.finish()
                     }
                     true
@@ -217,10 +219,10 @@ class RecordingListFragment private constructor() : Fragment(), RecordingsRecycl
 
     fun askForDeleteConfirmation(size: Int, onDelete: () -> Unit) {
         AlertDialog.Builder(requireContext())
-            .setTitle("Deleting %d entries".format(size))
-            .setMessage("Are you sure you want to delete the entries?")
-            .setNegativeButton("No") { _, _ -> Unit }
-            .setPositiveButton("Yes") { _, _ -> onDelete() }
+            .setTitle(getString(R.string.confirm_delete_entries_title, size))
+            .setMessage(R.string.confirm_delete_entries_message)
+            .setNegativeButton(R.string.confirm_no) { _, _ -> Unit }
+            .setPositiveButton(R.string.confirm_yes) { _, _ -> onDelete() }
             .show()
     }
 }

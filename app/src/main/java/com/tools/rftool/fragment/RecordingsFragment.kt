@@ -6,9 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.tools.rftool.R
 import com.tools.rftool.adapter.RecordingsRecyclerAdapter
 import com.tools.rftool.databinding.FragmentRecordingsBinding
 import com.tools.rftool.model.Recording
@@ -43,10 +45,11 @@ class RecordingsFragment: Fragment(), RecordingsViewModel.RecordingsListener {
     }
 
     override fun onOpenDetails(recording: Recording) {
-        parentFragmentManager.beginTransaction()
-            .replace(binding.containerView.id, RecordingDetailsFragment.newInstance(recording), null)
-            .addToBackStack(null)
-            .commit()
+        parentFragmentManager.commit {
+            setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+            replace(binding.containerView.id, RecordingDetailsFragment.newInstance(recording), null)
+            addToBackStack(null)
+        }
     }
 
     override fun onDestroyView() {

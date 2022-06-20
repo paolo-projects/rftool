@@ -11,6 +11,9 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlin.streams.toList
 
@@ -64,6 +67,28 @@ class RecordingsViewModel @Inject constructor(@ApplicationContext private val co
         }
 
         return recordings
+    }
+
+    fun createZipFile(recordings: List<Recording>): File {
+        val recordingsCache = File(context.cacheDir, "recordings")
+        if(!recordingsCache.isDirectory) {
+            recordingsCache.mkdir()
+        }
+        val tempFile = File.createTempFile("recordings", ".zip", recordingsCache)
+        val outStream = tempFile.outputStream()
+        val zipOutput = ZipOutputStream(outStream)
+
+        recordings.map { File("${context.filesDir}/recordings", it.fileName) }
+            .forEach {
+                val entry = ZipEntry(it.name)
+                zipOutput.putNextEntry(entry)
+                zipOutput.write(it.readBytes())
+                zipOutput.closeEntry()
+            }
+        zipOutput.close()
+        outStream.close()
+
+        return tempFile
     }
 
     fun deleteRecording(recording: Recording): Boolean {

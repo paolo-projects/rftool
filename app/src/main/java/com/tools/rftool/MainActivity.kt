@@ -64,6 +64,7 @@ class MainActivity :
 
         fragmentStateAdapter = MainActivityPagerAdapter(this, supportFragmentManager)
         binding.viewPager.adapter = fragmentStateAdapter
+        binding.viewPager.isUserInputEnabled = false
         //binding.viewPager.setPageTransformer(DepthPageTransformer())
 
         binding.bottomNavigation.setOnItemSelectedListener(navigationItemListener)
@@ -125,13 +126,13 @@ class MainActivity :
                     when (it) {
                         SdrDeviceViewModel.RecordingEvent.STARTED -> Toast.makeText(
                             this@MainActivity,
-                            "Signal recording started",
+                            R.string.toast_recording_started,
                             Toast.LENGTH_SHORT
                         ).show()
                         SdrDeviceViewModel.RecordingEvent.COMPLETED
                         -> Toast.makeText(
                             this@MainActivity,
-                            "Signal recording completed",
+                            R.string.toast_recording_completed,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -234,7 +235,7 @@ class MainActivity :
                 sdrDeviceViewModel.updateParams(sampleRate, centerFrequency, gain)
                 sdrDeviceViewModel.setColorMap(colorMap)
             } catch (exc: NumberFormatException) {
-                Toast.makeText(this, "The parameters are invalid", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.toast_invalid_parameters, Toast.LENGTH_SHORT).show()
             }
         }
         Unit
@@ -287,7 +288,7 @@ class MainActivity :
 
     override fun onPermissionRejected() {
         sdrDeviceViewModel.permissionsRejected()
-        Toast.makeText(this, "USB permissions refused!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.toast_usb_permission_denied, Toast.LENGTH_SHORT).show()
         invalidateOptionsMenu()
     }
 

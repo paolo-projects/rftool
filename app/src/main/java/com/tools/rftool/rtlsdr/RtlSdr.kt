@@ -49,7 +49,7 @@ class RtlSdr(
             throw RtlSdrError("Failed to open the SDR device")
         }
 
-        setColorMap("heat");
+        setColorMap("heat")
     }
 
     private val _bitmapFlow = MutableSharedFlow<Bitmap>()

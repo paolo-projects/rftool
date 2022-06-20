@@ -3,4 +3,7 @@
     <files-path
         name="recordings"
         path="recordings" />
+    <cache-path
+        name="recordings_compressed"
+        path="recordings" />
 </paths>

@@ -42,7 +42,7 @@ class SignalFragment : Fragment() {
 
         signalPowerPlotAdapter = RealTimePlotAdapter()
         binding.rtpSignalStrength.adapter = signalPowerPlotAdapter
-        binding.rtpSignalStrength.title = "Signal Power"
+        binding.rtpSignalStrength.title = getString(R.string.chart_signal_power_title)
         binding.fftPowerBar.treshold = appConfigurationRepository.autoRecThreshold
 
         lifecycleScope.launch {

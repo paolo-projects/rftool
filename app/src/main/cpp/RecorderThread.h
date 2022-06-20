@@ -6,6 +6,7 @@
 #define RFTOOL_RECORDERTHREAD_H
 
 #include <stdio.h>
+#include <fstream>
 #include <string>
 #include <queue>
 #include <condition_variable>
@@ -32,7 +33,8 @@ private:
     JNIEnv* env;
     JavaVM* jvm{};
     std::function<void()> restoreOriginalSize;
-    FILE* fileHandle = nullptr;
+    //FILE* fileHandle = nullptr;
+    std::unique_ptr<std::ofstream> recordingFile = nullptr;
     std::queue<std::vector<uint8_t>> queuedData;
     std::mutex mtx;
     std::condition_variable cv;

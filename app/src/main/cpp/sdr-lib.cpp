@@ -1,7 +1,5 @@
 #include "sdr-lib.h"
 
-#include <memory>
-
 // Private variables
 const char *TAG = "RfToolLib";
 rtlsdr_dev *device = nullptr;
@@ -12,6 +10,7 @@ std::unique_ptr<std::thread> dataReaderThread;
 int dataSize = 5120;
 bool dataReading = false;
 std::mutex rtlSdrMtx;
+std::array<uint8_t, (512 * (1<<14))> sdrDeviceReadBuffer;
 
 constexpr jdouble adcHalf = 255.0 / 2;
 std::map<libusb_error, std::string> libusbErrorCodes{
@@ -293,7 +292,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_stopDataReading
 
 const std::vector<double> &readData(jint size) {
     int goodSize = std::min((int) ceil(size / 512) * 512, 256 * (1 << 14));
-    buffer.resize(goodSize);
+    buffer.resize(goodSize);r
     int bytesRead;
     int err;
 

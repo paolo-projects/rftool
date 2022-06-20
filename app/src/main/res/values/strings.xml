@@ -1,5 +1,22 @@
 <resources>
     <string name="app_name">RFTool</string>
+
+    <string translatable="false" name="file_provider_authority">com.tools.rftool.fileprovider</string>
+
+    <string name="error_entries_delete_failed">Some entries could not be deleted</string>
+    <string name="confirm_delete_entries_message">Are you sure you want to delete the entries?</string>
+    <string name="confirm_delete_entries_title">Deleting %d entries</string>
+    <string name="confirm_no">No</string>
+    <string name="confirm_yes">Yes</string>
+    <string name="error_file_sharing">Can\'t share the file to external apps</string>
+    <string name="actionmode_selected_recordings">%d selected recordings</string>
+    <string name="confirm_delete_recording_title">Deleting current recording</string>
+    <string name="confirm_delete_recording_message">Do you really want to delete the current recording?</string>
+    <string name="chart_signal_power_title">Signal Power</string>
+    <string name="toast_recording_started">Signal recording started</string>
+    <string name="toast_recording_completed">Signal recording completed</string>
+    <string name="toast_invalid_parameters">The parameters are invalid</string>
+    <string name="toast_usb_permission_denied">USB permissions refused!</string>
     <string-array name="color_maps">
         <item>Grayscale</item>
         <item>Heat</item>

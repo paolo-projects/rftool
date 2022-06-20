@@ -10,6 +10,7 @@
 #include <rtl-sdr.h>
 #include <android/log.h>
 #include <vector>
+#include <array>
 #include <algorithm>
 #include <map>
 #include <libusb.h>

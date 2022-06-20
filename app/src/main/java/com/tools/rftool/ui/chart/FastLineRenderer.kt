@@ -99,7 +99,7 @@ class FastLineRenderer(chart: LineDataProvider,
 
                 // get the color that is set for this line-segment
                 mRenderPaint.color = dataSet.getColor(j)
-                canvas!!.drawLines(mLineBuffer, 0, pointsPerEntryPair * 2, mRenderPaint)
+                canvas.drawLines(mLineBuffer, 0, pointsPerEntryPair * 2, mRenderPaint)
             }
         } else { // only one color per dataset
             if (mLineBuffer.size < (entryCount * pointsPerEntryPair).coerceAtLeast(
