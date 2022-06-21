@@ -4,11 +4,11 @@
     <item
         android:id="@+id/share"
         android:icon="@drawable/ic_baseline_share_24"
-        android:title="Share"
+        android:title="@string/menu_share"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/delete_entry"
         android:icon="@drawable/ic_baseline_delete_24"
-        android:title="Delete"
+        android:title="@string/menu_delete_entry"
         app:showAsAction="never" />
 </menu>

@@ -4,7 +4,7 @@
 #include "FftThread.h"
 
 FftThread::FftThread(JNIEnv* env, jobject instance, int nSamples)
-    : nSamples(nSamples), env(env), instance(env->NewGlobalRef(instance)) {
+    : nSamples(nSamples), env(env), instance(env->NewGlobalRef(instance)), fftLib(nSamples) {
     bitmapClass = env->FindClass("android/graphics/Bitmap");
     bitmap_getPixels = env->GetMethodID(bitmapClass, "getPixels", "([IIIIIII)V");
     bitmap_setPixels = env->GetMethodID(bitmapClass, "setPixels", "([IIIIIII)V");

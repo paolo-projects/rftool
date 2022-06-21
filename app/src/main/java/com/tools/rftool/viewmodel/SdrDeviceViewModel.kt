@@ -87,12 +87,13 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
         centerFrequency: Int,
         gain: Int = 40,
         ppmError: Int = 5,
+        colorMap: Int = 0,
         blockSize: Int = 512 * 10
     ) {
         usbDevice = device
         usbDeviceConnection = connection
         rtlSdr =
-            RtlSdr(connection.fileDescriptor, this, sampleRate, centerFrequency, ppmError, gain)
+            RtlSdr(connection.fileDescriptor, this, sampleRate, centerFrequency, ppmError, gain, colorMap)
         this.sampleRate = sampleRate
         this.centerFrequency = centerFrequency
         this.gain = gain

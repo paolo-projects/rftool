@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/bottom_navigation_fft"
-        android:title="FFT"
+        android:title="@string/menu_fft"
         android:icon="@drawable/ic_baseline_analytics_24" />
     <item
         android:id="@+id/bottom_navigation_signal_decoder"
-        android:title="Signal"
+        android:title="@string/menu_signal"
         android:icon="@drawable/ic_baseline_waves_24" />
     <item
         android:id="@+id/bottom_navigation_recordings"
-        android:title="Recordings"
+        android:title="@string/menu_recordings"
         android:icon="@drawable/ic_baseline_sd_storage_24" />
 </menu>

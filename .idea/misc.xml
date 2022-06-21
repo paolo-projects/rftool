@@ -23,6 +23,7 @@
         <entry key="app/src/main/res/menu/activity_main_menu.xml" value="0.215625" />
         <entry key="app/src/main/res/menu/bottom_menu.xml" value="0.135546875" />
         <entry key="app/src/main/res/menu/fragment_recording_details.xml" value="0.18541666666666667" />
+        <entry key="app/src/main/res/menu/fragment_recording_list_actionmode.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/xml/device_filter.xml" value="0.18072916666666666" />
       </map>
     </option>

@@ -20,5 +20,6 @@
 #include "RecorderThread.h"
 
 int nearestGain(int targetGain);
+void setColorMap(const char* colorMap);
 
 #endif //RFTOOL_SDR_LIB_H

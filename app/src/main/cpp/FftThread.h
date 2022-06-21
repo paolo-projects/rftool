@@ -13,7 +13,7 @@
 #include <memory>
 #include <array>
 
-#include "fft-lib.h"
+#include "FFTLib.h"
 #include "ColorMap.h"
 #include "ThreadSafeBucket.h"
 
@@ -62,6 +62,7 @@ private:
     JNIEnv* env = nullptr;
     jobject instance = nullptr;
     ThreadSafeBucket<SdrData> latestData;
+    FFTLib fftLib;
     //rigtorp::SPSCQueue<std::vector<uint8_t>> dataQueue;
     //std::queue<std::vector<uint8_t>> dataQueue;
     //std::condition_variable cv;
@@ -119,7 +120,7 @@ void FftThread::updateBitmap(const std::array<jdouble, N> &data, size_t count) {
                 bitmapPixels.end());
 
     // Execute the FFT
-    FFTLib::executeFft(data, count, nSamples, fftDataBuffer);
+    fftLib.executeFft(data, count, fftDataBuffer);
     double minFFT = sqrt(sqr(fftDataBuffer[2]) + sqr(fftDataBuffer[3]));
     double maxFFT = minFFT;
     double maxFFTAbs = minFFT;

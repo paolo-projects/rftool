@@ -21,7 +21,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        sdr-lib.cpp fft-lib.cpp dsp-filter.cpp FftThread.cpp RecorderThread.cpp)
+        sdr-lib.cpp FFTLib.cpp dsp-filter.cpp FftThread.cpp RecorderThread.cpp)
 
 message(STATUS "Target arch for LibUSB: ${CMAKE_ANDROID_ARCH_ABI}")
 

@@ -58,6 +58,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
                                          jint centerFrequency,
                                          jint ppmError,
                                          jint gain,
+                                         jstring colorMap,
                                          jint fftSamples) {
     int res = rtlsdr_open(&device, fileDescriptor);
     if (res < 0) {
@@ -125,6 +126,10 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
 
     fftTrd = std::make_unique<FftThread>(env, _this, fftSamples);
     fftTrd->start();
+
+    const char *mapUtf = env->GetStringUTFChars(colorMap, nullptr);
+    setColorMap(mapUtf);
+    env->ReleaseStringUTFChars(colorMap, mapUtf);
 
     recorderThread = std::make_unique<RecorderThread>(env);
 
@@ -318,15 +323,7 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_tools_rftool_rtlsdr_RtlSdr_setColorMap(JNIEnv *env, jobject _this, jstring colorMap) {
     const char *mapUtf = env->GetStringUTFChars(colorMap, nullptr);
 
-    if (fftTrd != nullptr) {
-        if (strcmp(mapUtf, "grayscale") == 0) {
-            fftTrd->setColorMap(COLOR_MAP_GRAYSCALE);
-        } else if (strcmp(mapUtf, "heat") == 0) {
-            fftTrd->setColorMap(COLOR_MAP_HEAT);
-        } else if (strcmp(mapUtf, "rainbow") == 0) {
-            fftTrd->setColorMap(COLOR_MAP_RAINBOW);
-        }
-    }
+    setColorMap(mapUtf);
 
     env->ReleaseStringUTFChars(colorMap, mapUtf);
 }
@@ -381,4 +378,16 @@ int nearestGain(int targetGain) {
 
 void restoreDataSize() {
     dataSize = 5120;
+}
+
+void setColorMap(const char* colorMap) {
+    if (fftTrd != nullptr) {
+        if (strcmp(colorMap, "grayscale") == 0) {
+            fftTrd->setColorMap(COLOR_MAP_GRAYSCALE);
+        } else if (strcmp(colorMap, "heat") == 0) {
+            fftTrd->setColorMap(COLOR_MAP_HEAT);
+        } else if (strcmp(colorMap, "rainbow") == 0) {
+            fftTrd->setColorMap(COLOR_MAP_RAINBOW);
+        }
+    }
 }

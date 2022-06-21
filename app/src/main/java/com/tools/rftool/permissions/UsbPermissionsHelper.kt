@@ -31,7 +31,7 @@ class UsbPermissionsHelper(
             context,
             0,
             Intent(ACTION_USB_PERMISSION),
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_MUTABLE
         )
         val filter = IntentFilter(ACTION_USB_PERMISSION)
         context.registerReceiver(this, filter)

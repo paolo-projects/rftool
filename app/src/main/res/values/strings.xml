@@ -17,6 +17,17 @@
     <string name="toast_recording_completed">Signal recording completed</string>
     <string name="toast_invalid_parameters">The parameters are invalid</string>
     <string name="toast_usb_permission_denied">USB permissions refused!</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_delete_selection">Delete selection</string>
+    <string name="menu_delete_all">Delete all</string>
+    <string name="menu_delete_entry">Delete</string>
+    <string name="menu_fft">FFT</string>
+    <string name="menu_signal">Signal</string>
+    <string name="menu_recordings">Recordings</string>
+    <string name="menu_connect">Connect</string>
+    <string name="menu_start">Start</string>
+    <string name="menu_stop">Stop</string>
+
     <string-array name="color_maps">
         <item>Grayscale</item>
         <item>Heat</item>

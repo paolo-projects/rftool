@@ -267,13 +267,15 @@ class MainActivity :
         val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         val connection = usbManager.openDevice(device)
         sdrDeviceViewModel.permissionsGranted()
+
         sdrDeviceViewModel.initDevice(
             device,
             connection,
             appConfiguration.sampleRate,
             appConfiguration.centerFrequency,
             appConfiguration.gain,
-            appConfiguration.ppmError
+            appConfiguration.ppmError,
+            appConfiguration.colorMap
         )
         invalidateOptionsMenu()
     }
@@ -340,9 +342,11 @@ class MainActivity :
             icon.alpha = if (!sdrDeviceViewModel.devicePermissionsStatus.value) 255 else 130
         }
         menu.findItem(R.id.usb_start_stop).apply {
-            isEnabled = sdrDeviceViewModel.devicePermissionsStatus.value
             icon =
                 getDrawable(if (sdrDeviceViewModel.deviceConnected.value) R.drawable.ic_baseline_stop_24 else R.drawable.ic_baseline_play_arrow_24)
+            title = if(sdrDeviceViewModel.deviceConnected.value) getString(R.string.menu_start) else getString(R.string.menu_stop)
+
+            isEnabled = sdrDeviceViewModel.devicePermissionsStatus.value
             icon.alpha = if (sdrDeviceViewModel.devicePermissionsStatus.value) 255 else 130
         }
         return super.onPrepareOptionsMenu(menu)

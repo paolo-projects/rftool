@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.Log
+import com.tools.rftool.util.graphics.ColorMaps
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,7 +18,8 @@ class RtlSdr(
     sampleRate: Int,
     centerFrequency: Int,
     ppmError: Int = 0,
-    gain: Int = 40
+    gain: Int = 40,
+    colorMap: Int = 0
 ) {
     companion object {
         private const val TAG = "RtlSdr"
@@ -44,12 +46,11 @@ class RtlSdr(
     init {
         val canvas = Canvas(_bitmap)
         canvas.drawPaint(paint)
+        val mapName = ColorMaps.getColorMap(colorMap)
 
-        if (!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain)) {
+        if (!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain, mapName)) {
             throw RtlSdrError("Failed to open the SDR device")
         }
-
-        setColorMap("heat")
     }
 
     private val _bitmapFlow = MutableSharedFlow<Bitmap>()
@@ -63,7 +64,8 @@ class RtlSdr(
         centerFrequency: Int,
         ppmError: Int = 0,
         gain: Int = 40,
-        fftSamples: Int = 2048
+        colorMap: String,
+        fftSamples: Int = 1024
     ): Boolean
 
     private external fun setSampleRate(sampleRate: Int): Boolean
@@ -199,12 +201,7 @@ class RtlSdr(
 
     fun setFftColorMap(colorMap: Int) {
         if (!deviceClosed) {
-            when (colorMap) {
-                0 -> setColorMap("grayscale")
-                1 -> setColorMap("heat")
-                2 -> setColorMap("rainbow")
-                else -> setColorMap("grayscale")
-            }
+            setColorMap(ColorMaps.getColorMap(colorMap))
         }
     }
 
