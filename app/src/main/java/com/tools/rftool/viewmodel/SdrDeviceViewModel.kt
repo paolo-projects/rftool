@@ -39,8 +39,8 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
     private val _fftSignalMax = MutableSharedFlow<Double>()
     val fftSignalMax = _fftSignalMax.asSharedFlow()
 
-    private val _recordingEvents = MutableSharedFlow<RecordingEvent>()
-    val recordingCompleted = _recordingEvents.asSharedFlow()
+    private val _recordingEvents = MutableStateFlow(Recorder.RecordingEvent.FINISHED)
+    val recordingEvents = _recordingEvents.asStateFlow()
 
     @Inject
     lateinit var appConfigurationRepository: AppConfigurationRepository
@@ -65,10 +65,6 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
         private set
     var gain: Int = 0
         private set
-
-    enum class RecordingEvent {
-        STARTED, COMPLETED
-    }
 
     private val recorder = Recorder(context, this)
 
@@ -172,18 +168,15 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
     override fun onFftMax(fftMax: Double) {
         if (appConfigurationRepository.autoRecEnabled && fftMax > appConfigurationRepository.autoRecThreshold) {
             recorder.record(appConfigurationRepository.autoRecTimeMs, sampleRate, centerFrequency)
-            viewModelScope.launch {
-                _recordingEvents.emit(RecordingEvent.STARTED)
-            }
         }
         viewModelScope.launch {
             _fftSignalMax.emit(fftMax)
         }
     }
 
-    override fun onRecordingEnded() {
+    override fun onRecordingStatus(status: Recorder.RecordingEvent) {
         viewModelScope.launch {
-            _recordingEvents.emit(RecordingEvent.COMPLETED)
+            _recordingEvents.emit(status)
         }
     }
 }

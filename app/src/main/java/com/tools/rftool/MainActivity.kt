@@ -29,6 +29,7 @@ import com.tools.rftool.adapter.MainActivityPagerAdapter
 import com.tools.rftool.databinding.ActivityMainBinding
 import com.tools.rftool.permissions.UsbPermissionsHelper
 import com.tools.rftool.repository.AppConfigurationRepository
+import com.tools.rftool.rtlsdr.Recorder
 import com.tools.rftool.service.FileSystemWatcherService
 import com.tools.rftool.ui.DepthPageTransformer
 import com.tools.rftool.util.validator.*
@@ -122,19 +123,10 @@ class MainActivity :
                 }
             }
             async {
-                sdrDeviceViewModel.recordingCompleted.collect {
+                sdrDeviceViewModel.recordingEvents.collect {
                     when (it) {
-                        SdrDeviceViewModel.RecordingEvent.STARTED -> Toast.makeText(
-                            this@MainActivity,
-                            R.string.toast_recording_started,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        SdrDeviceViewModel.RecordingEvent.COMPLETED
-                        -> Toast.makeText(
-                            this@MainActivity,
-                            R.string.toast_recording_completed,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Recorder.RecordingEvent.ONGOING -> binding.recordingProgressBar.visibility = View.VISIBLE
+                        Recorder.RecordingEvent.FINISHED -> binding.recordingProgressBar.visibility = View.INVISIBLE
                     }
                 }
             }

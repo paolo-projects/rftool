@@ -4,8 +4,8 @@
 
 #include "fft-lib.h"
 
-std::vector<kiss_fft_cpx> inputFft;
-std::vector<kiss_fft_cpx> outputFft;
+std::vector<kiss_fft_cpx> FFTLib::inputFft;
+std::vector<kiss_fft_cpx> FFTLib::outputFft;
 std::vector<jdouble> output;
 std::vector<jdouble> outputData;
 
@@ -18,7 +18,7 @@ Java_com_tools_rftool_fft_Fft_fft(JNIEnv *env, jobject _this,
     inputData.resize(dataLength);
     env->GetDoubleArrayRegion(data, 0, dataLength, inputData.data());
 
-    executeFft(inputData, nSamples, outputData);
+    FFTLib::executeFft(inputData, nSamples, outputData);
 
     jdoubleArray outputArr = env->NewDoubleArray(nSamples * 2);
     env->SetDoubleArrayRegion(outputArr, 0, nSamples * 2, outputData.data());
@@ -26,13 +26,12 @@ Java_com_tools_rftool_fft_Fft_fft(JNIEnv *env, jobject _this,
     return outputArr;
 }
 
-void executeFft(const std::vector<jdouble> &data, int nSamples, std::vector<jdouble>& outputBuffer) {
-    size_t dataLength = data.size();
-
+void FFTLib::executeFft(const std::vector<jdouble> &data, int nSamples,
+                        std::vector<jdouble> &outputBuffer) {
     inputFft.resize(nSamples);
     outputFft.resize(nSamples);
 
-    double decimationFactor = (double) dataLength / (2*nSamples);
+    double decimationFactor = (double) data.size() / (2 * nSamples);
 
     for (int i = 0; i < nSamples; i++) {
         int n = (int) round(decimationFactor * i);

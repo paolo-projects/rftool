@@ -174,7 +174,7 @@ class SignalAnalysisView : View {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun decimatedPoints(data: List<SignalDataPoint>): List<SignalDataPoint> {
-        return if (data.size > downSampledSize / 2) {
+        return if (data.size > (downSampledSize * 2)) {
             LTThreeBuckets.sorted(data, downSampledSize - 2)
         } else {
             data
@@ -355,15 +355,22 @@ class SignalAnalysisView : View {
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             //val factor = 1f / detector.scaleFactor.coerceAtLeast(0f).coerceAtMost(10f)
-            val factor =
+            var factor =
                 (lastSpanX / detector.currentSpanX).coerceAtMost(10f).coerceAtLeast(0.1f)
+
+            factor = 1f - (1f - factor) / 10f
+
             Log.d(TAG, "onScale: Scale factor %.3f".format(factor))
             var rangeSize = (dataRange.max - dataRange.min)
-            val rangeCenter = (dataRange.min + dataRange.max) / 2f
-            rangeSize = (rangeSize * factor).coerceAtLeast(0.001f).coerceAtMost(1f)
-            val halfSize = rangeSize / 2
-            val newMin = (rangeCenter - halfSize).coerceAtLeast(0f)
-            val newMax = (rangeCenter + halfSize).coerceAtMost(1f)
+            val scaleCenter = detector.focusX / width
+
+            val rangeCenter = rangeSize * scaleCenter + dataRange.min
+            val newRangeSize = (rangeSize * factor).coerceAtLeast(0.001f).coerceAtMost(1f)
+
+            val sizeL = newRangeSize * rangeCenter
+            val sizeR = newRangeSize * (1-rangeCenter)
+            val newMin = (rangeCenter - sizeL).coerceAtLeast(0f)
+            val newMax = (rangeCenter + sizeR).coerceAtMost(1f)
             dataRange.min = newMin
             dataRange.max = newMax
             Log.d(TAG, "onScale: new min %.3f new max %.3f".format(dataRange.min, dataRange.max))

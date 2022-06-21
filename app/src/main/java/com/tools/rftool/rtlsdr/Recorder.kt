@@ -17,8 +17,12 @@ class Recorder(private val context: Context, private val listener: RecorderListe
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss")
     }
 
+    enum class RecordingEvent {
+        ONGOING, FINISHED
+    }
+
     interface RecorderListener {
-        fun onRecordingEnded()
+        fun onRecordingStatus(status: RecordingEvent)
     }
 
     class RecorderException(message: String): Error(message)
@@ -49,11 +53,11 @@ class Recorder(private val context: Context, private val listener: RecorderListe
 
     // Called from JNI
     private fun onRecordingStarted() {
-
+        listener.onRecordingStatus(RecordingEvent.ONGOING)
     }
 
     // Called from JNI
     private fun onRecordingCompleted() {
-
+        listener.onRecordingStatus(RecordingEvent.FINISHED)
     }
 }

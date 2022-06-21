@@ -19,27 +19,21 @@
 
 class RecorderThread {
 public:
-    RecorderThread(JNIEnv* env, std::function<void()> restoreOriginalSize);
+    RecorderThread(JNIEnv* env);
     ~RecorderThread();
 
     void startRecording(JNIEnv* env,jobject recorderInstance, const std::string& fileName);
     void startRecording(JNIEnv* env,jobject recorderInstance, const std::string& fileName, long durationMs);
     void stopRecording(JNIEnv* env);
 
-    void appendData(const std::vector<uint8_t>& data);
+    template<size_t N>
+    void appendData(const std::array<uint8_t, N>& data, size_t count);
 private:
     const char* TAG = "RecorderThread";
 
     JNIEnv* env;
     JavaVM* jvm{};
-    std::function<void()> restoreOriginalSize;
-    //FILE* fileHandle = nullptr;
     std::unique_ptr<std::ofstream> recordingFile = nullptr;
-    std::queue<std::vector<uint8_t>> queuedData;
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool recorderThreadRunning = false;
-    std::unique_ptr<std::thread> recorderThread;
     long recordingDuration = -1;
     std::chrono::time_point<std::chrono::system_clock> recordingStartTime;
 
@@ -47,10 +41,31 @@ private:
     jobject recorderInstance = nullptr;
     jmethodID recorder_onRecordingStarted;
     jmethodID recorder_onRecordingCompleted;
-
-private:
-    void executor();
 };
 
+
+template<size_t N>
+void RecorderThread::appendData(const std::array<uint8_t, N> &data, size_t count) {
+    auto nowTime = std::chrono::system_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
+    if (recordingFile != nullptr) {
+        std::copy(data.cbegin(), data.cbegin() + count, std::ostreambuf_iterator<char>(*recordingFile));
+    }
+    if (recordingDuration > 0 && std::chrono::duration_cast<std::chrono::milliseconds>(
+            nowTime - recordingStartTime).count() > recordingDuration) {
+        __android_log_write(ANDROID_LOG_DEBUG, TAG, "Recording time elapsed. Stopping...");
+
+        JavaVMAttachArgs args;
+        args.version = JNI_VERSION_1_6;
+        args.group = nullptr;
+        args.name = nullptr;
+        jvm->AttachCurrentThread(&env, &args);
+        stopRecording(env);
+        jvm->DetachCurrentThread();
+    }
+    auto endTime = std::chrono::high_resolution_clock::now();
+    __android_log_print(ANDROID_LOG_VERBOSE, TAG, "Recorder file write overhead %d ms",
+                        std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count());
+}
 
 #endif //RFTOOL_RECORDERTHREAD_H

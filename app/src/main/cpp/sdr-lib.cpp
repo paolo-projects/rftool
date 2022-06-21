@@ -10,7 +10,8 @@ std::unique_ptr<std::thread> dataReaderThread;
 int dataSize = 5120;
 bool dataReading = false;
 std::mutex rtlSdrMtx;
-std::array<uint8_t, (512 * (1<<14))> sdrDeviceReadBuffer;
+// Input array set to maximum size that can be read from the USB device
+std::array<uint8_t, (256 * (1 << 14))> sdrDeviceReadBuffer;
 
 constexpr jdouble adcHalf = 255.0 / 2;
 std::map<libusb_error, std::string> libusbErrorCodes{
@@ -43,15 +44,12 @@ std::map<libusb_error, std::string> libusbErrorCodes{
         {LIBUSB_ERROR_OTHER,
                 "LIBUSB_ERROR_OTHER"},
 };
-std::vector<uint8_t> buffer;
-std::vector<jdouble> outDataBuffer;
 std::vector<int> gains;
 
 // Private forward declarations
 void dataReadingExecutor(JavaVM *jvm, JNIEnv *env);
 void restoreDataSize();
-
-const std::vector<double> &readData(jint size);
+const void readData(jint size);
 
 // Implementations
 extern "C" JNIEXPORT jboolean JNICALL
@@ -128,7 +126,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
     fftTrd = std::make_unique<FftThread>(env, _this, fftSamples);
     fftTrd->start();
 
-    recorderThread = std::make_unique<RecorderThread>(env, restoreDataSize);
+    recorderThread = std::make_unique<RecorderThread>(env);
 
     return true;
 }
@@ -270,7 +268,7 @@ void dataReadingExecutor(JavaVM *jvm, JNIEnv *env) {
 
     try {
         while (dataReading) {
-            const auto &data = readData(dataSize);
+            readData(dataSize);
         }
     } catch (const std::exception &exc) {
         __android_log_write(ANDROID_LOG_ERROR, TAG,
@@ -290,33 +288,30 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_stopDataReading
     }
 }
 
-const std::vector<double> &readData(jint size) {
+const void readData(jint size) {
     int goodSize = std::min((int) ceil(size / 512) * 512, 256 * (1 << 14));
-    buffer.resize(goodSize);r
+    //buffer.resize(goodSize);
+
+    namespace chr = std::chrono;
+    using hrc = chr::high_resolution_clock;
+
     int bytesRead;
     int err;
 
     {
         std::unique_lock<std::mutex> lock(rtlSdrMtx);
-        if ((err = rtlsdr_read_sync(device, buffer.data(), goodSize, &bytesRead)) < 0) {
+        if ((err = rtlsdr_read_sync(device, sdrDeviceReadBuffer.data(), goodSize, &bytesRead)) < 0) {
             __android_log_print(ANDROID_LOG_ERROR, TAG, "Failed to read from device. %s",
                                 libusbErrorCodes[(libusb_error) err].c_str());
             throw std::runtime_error("Failed to read from device");
         }
     }
 
-    buffer.resize(goodSize);
-    outDataBuffer.resize(goodSize);
-
-    recorderThread->appendData(buffer);
-
-    for (int i = 0; i < bytesRead; i++) {
-        outDataBuffer[i] = (buffer[i] - adcHalf) / adcHalf;
-    }
-
-    fftTrd->push(outDataBuffer);
-
-    return outDataBuffer;
+    auto start_time = hrc::now();
+    recorderThread->appendData(sdrDeviceReadBuffer, bytesRead);
+    fftTrd->push(sdrDeviceReadBuffer, bytesRead);
+    auto end_time = hrc::now();
+    __android_log_print(ANDROID_LOG_VERBOSE, TAG, "recorderthread, fft overhead = %d ms", chr::duration_cast<chr::milliseconds>(end_time - start_time).count());
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -345,7 +340,7 @@ Java_com_tools_rftool_rtlsdr_Recorder_startRecordingTimed(JNIEnv *env, jobject _
     env->ReleaseStringUTFChars(filePath, pathUtf);
 
     jobject globalThis = env->NewGlobalRef(_this);
-    dataSize = int(rtlsdr_get_sample_rate(device) * std::min(durationMs, 1000) / 1000.0);
+    //dataSize = int(rtlsdr_get_sample_rate(device) * std::min(durationMs, 1000) / 1000.0);
     recorderThread->startRecording(env, globalThis, path, durationMs);
 }
 
