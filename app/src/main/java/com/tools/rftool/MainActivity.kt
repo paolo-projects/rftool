@@ -13,10 +13,7 @@ import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.EditText
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -32,6 +29,7 @@ import com.tools.rftool.repository.AppConfigurationRepository
 import com.tools.rftool.rtlsdr.Recorder
 import com.tools.rftool.service.FileSystemWatcherService
 import com.tools.rftool.ui.DepthPageTransformer
+import com.tools.rftool.ui.animation.ButtonAnimation
 import com.tools.rftool.util.validator.*
 import com.tools.rftool.viewmodel.SdrDeviceViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,6 +51,9 @@ class MainActivity :
 
     private val sdrDeviceViewModel by viewModels<SdrDeviceViewModel>()
     private lateinit var usbPermissionsHelper: UsbPermissionsHelper
+
+    private lateinit var autoRecApplyAnimation: ButtonAnimation
+    private lateinit var rfApplyAnimation: ButtonAnimation
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,6 +111,9 @@ class MainActivity :
 
         binding.navigationViewLayout.btnRfApply.setOnClickListener(onSaveNewConfiguration)
         binding.navigationViewLayout.btnAutoRecApply.setOnClickListener(onAutoRecApply)
+
+        autoRecApplyAnimation = ButtonAnimation(binding.navigationViewLayout.btnAutoRecApply)
+        rfApplyAnimation = ButtonAnimation(binding.navigationViewLayout.btnRfApply)
 
         lifecycleScope.launch {
             async {
@@ -191,6 +195,8 @@ class MainActivity :
         } catch (exc: NumberFormatException) {
             binding.navigationViewLayout.tfAutoRecTime.editText!!.setText(appConfiguration.autoRecTimeMs.toString())
         }
+
+        autoRecApplyAnimation.animateSuccess()
     }
 
     private val onSaveNewConfiguration = { v: View ->
@@ -226,8 +232,11 @@ class MainActivity :
 
                 sdrDeviceViewModel.updateParams(sampleRate, centerFrequency, gain)
                 sdrDeviceViewModel.setColorMap(colorMap)
+
+                rfApplyAnimation.animateSuccess()
             } catch (exc: NumberFormatException) {
                 Toast.makeText(this, R.string.toast_invalid_parameters, Toast.LENGTH_SHORT).show()
+                rfApplyAnimation.animateError()
             }
         }
         Unit

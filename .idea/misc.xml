@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.17056354916067146" />
+        <entry key="app/src/main/res/drawable/btn_success_failure.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_analytics_24.xml" value="0.1755" />
         <entry key="app/src/main/res/drawable/ic_baseline_delete_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_delete_sweep_24.xml" value="0.1" />
