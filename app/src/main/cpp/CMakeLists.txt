@@ -21,7 +21,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        sdr-lib.cpp FFTLib.cpp dsp-filter.cpp FftThread.cpp RecorderThread.cpp)
+        sdr-lib.cpp FFTLib.cpp FftThread.cpp RecorderThread.cpp signalanalysis.cpp signalprocessing.cpp)
 
 message(STATUS "Target arch for LibUSB: ${CMAKE_ANDROID_ARCH_ABI}")
 
@@ -45,17 +45,13 @@ target_include_directories(rtlsdr_shared PUBLIC libusb)
 target_link_libraries(rftool rtlsdr_shared)
 target_include_directories(rftool PUBLIC librtlsdr/include)
 
-#add_subdirectory(${PROJECT_SOURCE_DIR}/fftw)
-#target_link_libraries(rftool fftw3)
-#target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw/api)
+add_subdirectory(${PROJECT_SOURCE_DIR}/fftw)
+target_link_libraries(rftool fftw3)
+target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw/api)
 
-set(KISSFFT_DATATYPE "double" CACHE STRING "Principal datatype of kissfft: double, float (default), int16_t, int32_t, simd")
-set(KISSFFT_TEST OFF CACHE BOOL "")
-set(KISSFFT_TOOLS OFF CACHE BOOL "")
-
-add_subdirectory(kissfft)
-target_link_libraries(rftool kissfft)
-target_include_directories(rftool PUBLIC kissfft)
+add_subdirectory(DSPFilters)
+target_link_libraries(rftool DSPFilters)
+target_include_directories(rftool PUBLIC DSPFilters/include)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

@@ -1,0 +1,9 @@
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/fftw3.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/bench.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/test.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/edit_cache.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/rebuild_cache.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/list_install_components.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/install.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/install/local.dir
+/home/paolo/librtlsdr-android/fftw-3.3.10/build-lnx/CMakeFiles/install/strip.dir

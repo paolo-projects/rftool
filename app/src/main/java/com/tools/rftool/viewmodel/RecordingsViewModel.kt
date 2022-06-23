@@ -11,6 +11,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -46,18 +47,26 @@ class RecordingsViewModel @Inject constructor(@ApplicationContext private val co
 
         if (recordingsDir.exists()) {
             val recordingFiles = recordingsDir.listFiles { _, name ->
-                FILE_NAME_PATTERN.matches(
+                val matches = FILE_NAME_PATTERN.matches(
                     name
                 )
+                matches
             }
             if (recordingFiles != null) {
                 recordings.addAll(recordingFiles.map {
                     val match = FILE_NAME_PATTERN.matchEntire(it.name)
                     val date = DATE_FORMATTER.parse(match!!.groups[1]!!.value)
-                    Recording(
-                        LocalDateTime.from(date), it.name, match.groups[2]!!.value.toInt(),
-                        match.groups[3]!!.value.toInt(), it.length()
-                    )
+                    try {
+                        Recording(
+                            LocalDateTime.from(date), it.name, match.groups[2]!!.value.toInt(),
+                            match.groups[3]!!.value.toInt(), it.length()
+                        )
+                    } catch (exc: DateTimeParseException) {
+                        Recording(
+                            LocalDateTime.now(), it.name, match.groups[2]!!.value.toInt(),
+                            match.groups[3]!!.value.toInt(), it.length()
+                        )
+                    }
                 })
             }
         }
@@ -71,7 +80,7 @@ class RecordingsViewModel @Inject constructor(@ApplicationContext private val co
 
     fun createZipFile(recordings: List<Recording>): File {
         val recordingsCache = File(context.cacheDir, "recordings")
-        if(!recordingsCache.isDirectory) {
+        if (!recordingsCache.isDirectory) {
             recordingsCache.mkdir()
         }
         val tempFile = File.createTempFile("recordings", ".zip", recordingsCache)

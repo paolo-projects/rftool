@@ -25,6 +25,8 @@
         <entry key="app/src/main/res/menu/fragment_recording_details.xml" value="0.18541666666666667" />
         <entry key="app/src/main/res/menu/fragment_recording_list_actionmode.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/xml/device_filter.xml" value="0.18072916666666666" />
+        <entry key="signalanalysis/src/main/res/layout/activity_test_signalanalisysview.xml" value="0.11822916666666666" />
+        <entry key="signalanalysis/src/main/res/layout/activity_test_signalanalysisview.xml" value="0.13385416666666666" />
       </map>
     </option>
   </component>

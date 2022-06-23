@@ -2,102 +2,117 @@
 <com.facebook.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/shimmer_layout"
-    app:shimmer_auto_start="true"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    app:shimmer_auto_start="true">
 
-    <ScrollView
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="0"
+            />
 
-            <TextView
-                android:id="@+id/tv_file_name"
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Time"
-                android:textAllCaps="true"
-                android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tv_file_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tv_time"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Time"
+                    android:textAllCaps="true"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Sample Rate"
-                android:textAllCaps="true"
-                android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tv_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tv_sample_rate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Sample Rate"
+                    android:textAllCaps="true"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Tuned Frequency"
-                android:textAllCaps="true"
-                android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tv_sample_rate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tv_center_frequency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Tuned Frequency"
+                    android:textAllCaps="true"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Sample length"
-                android:textAllCaps="true"
-                android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tv_center_frequency"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tv_sample_length"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Sample length"
+                    android:textAllCaps="true"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Signal"
-                android:textAllCaps="true"
-                android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tv_sample_length"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
 
-            <!--<com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/ch_signal"
-                android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:layout_marginBottom="8dp"
-                android:background="@android:color/white" />-->
-            <com.tools.signalanalysis.ui.SignalAnalysisView
-                android:id="@+id/ch_signal"
-                android:layout_width="match_parent"
-                android:layout_height="400dp"
-                app:title="Signal data" />
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </ScrollView>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Signal"
+                    android:textAllCaps="true"
+                    android:textStyle="bold" />
+
+                <!--<com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/ch_signal"
+                    android:layout_width="match_parent"
+                    android:layout_height="400dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@android:color/white" />-->
+                <com.tools.rftool.ui.SignalAnalysisView
+                    android:id="@+id/ch_signal"
+                    android:layout_width="match_parent"
+                    android:layout_height="400dp"
+                    app:title="Signal data" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </ScrollView>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </com.facebook.shimmer.ShimmerFrameLayout>

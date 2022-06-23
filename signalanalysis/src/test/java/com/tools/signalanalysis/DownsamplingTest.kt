@@ -1,7 +1,7 @@
 package com.tools.signalanalysis
 
-import com.tools.signalanalysis.adapter.SignalDataPoint
-import com.tools.signalanalysis.utils.downsampling.LTThreeBuckets
+import com.tools.rftool.adapter.SignalDataPoint
+import com.tools.rftool.utils.downsampling.LTThreeBuckets
 import org.junit.Test
 
 import org.junit.Assert.*

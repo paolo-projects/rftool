@@ -4,8 +4,6 @@
 
 #include "FFTLib.h"
 
-std::vector<kiss_fft_cpx> FFTLib::staticInputFft;
-std::vector<kiss_fft_cpx> FFTLib::staticOutputFft;
 std::vector<jdouble> output;
 std::vector<jdouble> outputData;
 
@@ -27,38 +25,48 @@ Java_com_tools_rftool_fft_Fft_fft(JNIEnv *env, jobject _this,
 }
 
 FFTLib::FFTLib(int fftSize)
-: fftSize(fftSize) {
-    cfg = kiss_fft_alloc(fftSize, false, nullptr, nullptr);
-    inputFft.resize(fftSize);
-    outputFft.resize(fftSize);
+        : fftSize(fftSize) {
+    inputFft = (fftw_complex *) fftw_malloc(fftSize * sizeof(fftw_complex));
+    outputFft = (fftw_complex *) fftw_malloc(fftSize * sizeof(fftw_complex));
+    fftPlan = fftw_plan_dft_1d(fftSize, inputFft,
+                               outputFft, FFTW_FORWARD,
+                               FFTW_ESTIMATE);
 }
 
 FFTLib::~FFTLib() {
-    kiss_fft_free(cfg);
-    cfg = nullptr;
+    fftw_destroy_plan(fftPlan);
+    fftw_free(inputFft);
+    fftw_free(outputFft);
 }
 
 void FFTLib::executeFft(const std::vector<jdouble> &data, int nSamples,
                         std::vector<jdouble> &outputBuffer) {
-    staticInputFft.resize(nSamples);
-    staticOutputFft.resize(nSamples);
+
+    auto *fftIn = (fftw_complex *)fftw_malloc(nSamples * sizeof(fftw_complex));
+    auto *fftOut = (fftw_complex *)fftw_malloc(nSamples * sizeof(fftw_complex));
 
     double decimationFactor = (double) data.size() / (2 * nSamples);
 
     for (int i = 0; i < nSamples; i++) {
         int n = (int) round(decimationFactor * i);
-        staticInputFft[i].r = data[n * 2];
-        staticInputFft[i].i = data[n * 2 + 1];
+        fftIn[i][0] = data[n * 2];
+        fftIn[i][1] = data[n * 2 + 1];
     }
 
-    kiss_fft_cfg cfg = kiss_fft_alloc(nSamples, false, nullptr, nullptr);
-    kiss_fft(cfg, staticInputFft.data(), staticOutputFft.data());
-    kiss_fft_free(cfg);
+    fftw_plan fftwPlan = fftw_plan_dft_1d(nSamples,
+                                          fftIn,
+                                          fftOut,
+                                          FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(fftwPlan);
+    fftw_destroy_plan(fftwPlan);
 
     outputBuffer.resize(nSamples * 2);
 
     for (int i = 0; i < nSamples; i++) {
-        outputBuffer[i * 2] = staticOutputFft[i].r;
-        outputBuffer[i * 2 + 1] = staticOutputFft[i].i;
+        outputBuffer[i * 2] = fftOut[i][0];
+        outputBuffer[i * 2 + 1] = fftOut[i][1];
     }
+
+    fftw_free(fftIn);
+    fftw_free(fftOut);
 }

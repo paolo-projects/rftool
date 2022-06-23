@@ -65,6 +65,25 @@ soon as it happens. The parameters for the Auto-Rec function are:
   have little use.
 - __Recording time__: The milliseconds to record. This value can be set to 1000 ms at maximum.
 
+## Credits
+
+### [fftw](https://www.fftw.org/)
+
+Library used for FFT implementation
+
+### [librtlsdr](https://github.com/steve-m/librtlsdr)
+
+An adapted version of this library is used for communicating with the RtlSdr device
+through libusb
+
+### [DSP Filters](https://github.com/vinniefalco/DSPFilters)
+
+Library used for signal analysis
+
+### [SPSC queue](https://github.com/cameron314/readerwriterqueue)
+
+Thread safe queue used for the file recorder 
+
 ## License
 
 This software is licensed under GNU GPLv3. Read the LICENSE file for additional info.

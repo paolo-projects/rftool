@@ -21,7 +21,24 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        signalanalysis.cpp signalanalysisview.cpp)
+        signalanalysis.cpp signalprocessing.cpp)
+
+add_subdirectory(DSPFilters)
+
+target_link_libraries(
+        signalanalysis
+        DSPFilters
+)
+
+target_include_directories(
+        signalanalysis
+        PUBLIC
+        DSPFilters/include
+)
+
+add_subdirectory(fftw)
+target_link_libraries(signalanalysis fftw3)
+target_include_directories(signalanalysis PUBLIC fftw/api)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

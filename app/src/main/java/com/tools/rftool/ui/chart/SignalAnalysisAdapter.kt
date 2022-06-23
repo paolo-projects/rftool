@@ -1,7 +1,7 @@
 package com.tools.rftool.ui.chart
 
-import com.tools.signalanalysis.adapter.SignalDataPoint
-import com.tools.signalanalysis.data.SignalAnalysisViewAdapter
+import com.tools.rftool.adapter.SignalDataPoint
+import com.tools.rftool.adapter.SignalAnalysisViewAdapter
 import kotlin.math.max
 import kotlin.math.min
 
