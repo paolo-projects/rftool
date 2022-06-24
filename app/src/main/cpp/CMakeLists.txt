@@ -33,14 +33,10 @@ message(STATUS "Target arch for LibUSB: ${CMAKE_ANDROID_ARCH_ABI}")
 add_library(rtlsdr_shared SHARED librtlsdr/src/librtlsdr.c librtlsdr/src/tuner_e4k.c librtlsdr/src/tuner_fc0012.c
         librtlsdr/src/tuner_fc0013.c librtlsdr/src/tuner_fc2580.c librtlsdr/src/tuner_r82xx.c)
 
-target_link_libraries(rtlsdr_shared "${PROJECT_SOURCE_DIR}/libusb/libs/${CMAKE_ANDROID_ARCH_ABI}/libusb1.0.so")
-
-#target_link_libraries(rtlsdr_shared
-#        -Llibusb/libs/${CMAKE_ANDROID_ARCH_ABI}
-#        -lunrooted_android)
+target_link_libraries(rtlsdr_shared "${PROJECT_SOURCE_DIR}/libusb-1.0.26/android-build/${CMAKE_ANDROID_ARCH_ABI}/libusb1.0.so")
 
 target_include_directories(rtlsdr_shared PUBLIC librtlsdr/include)
-target_include_directories(rtlsdr_shared PUBLIC libusb)
+target_include_directories(rtlsdr_shared PUBLIC libusb-1.0.26/libusb)
 
 target_link_libraries(rftool rtlsdr_shared)
 target_include_directories(rftool PUBLIC librtlsdr/include)

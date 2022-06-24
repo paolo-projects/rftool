@@ -86,3 +86,15 @@ dependencies {
     kaptTest 'com.google.dagger:hilt-compiler:2.42'
     androidTestImplementation 'androidx.benchmark:benchmark-junit4:1.1.0'
 }
+
+task buildLibUsbNdk(type: Exec) {
+    def ndkDir = android.ndkDirectory
+    executable = "$ndkDir/ndk-build"
+    args = ['NDK_PROJECT_PATH=build/intermediates/ndk',
+            'NDK_LIBS_OUT=src/main/cpp/libusb-1.0.26/android-build',
+            'APP_BUILD_SCRIPT=src/main/cpp/libusb-1.0.26/android/jni/Android.mk',
+            'NDK_APPLICATION=src/main/cpp/libusb-1.0.26/android/jni/Application.mk'
+    ]
+}
+
+preBuild.dependsOn buildLibUsbNdk
