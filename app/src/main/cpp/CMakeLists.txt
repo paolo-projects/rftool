@@ -43,6 +43,7 @@ target_include_directories(rftool PUBLIC librtlsdr/include)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/fftw)
 target_link_libraries(rftool fftw3)
+target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw)
 target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw/api)
 
 # Searches for a specified prebuilt library and stores the path as a
