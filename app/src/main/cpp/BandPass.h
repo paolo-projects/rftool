@@ -41,7 +41,7 @@ public:
         for (int i = 0; i < data.size(); i++) {
             for (int n = -2; n <= 0; n++) {
                 if (i + n >= 0) {
-                    result[i] += data[i - n] * convCoeffs[-n] + result[i - n] * recCoeffs[-n];
+                    result[i] += data[i + n] * convCoeffs[-n] + result[i + n] * recCoeffs[-n];
                 }
             }
         }

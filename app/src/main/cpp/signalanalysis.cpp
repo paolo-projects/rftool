@@ -37,13 +37,13 @@ extern "C" JNIEXPORT void JNICALL
     progressUpdateCallback(0.33);
 
     jsize dataSize = env->GetArrayLength(data);
-    std::vector<double> dataVector(dataSize);
-    env->GetDoubleArrayRegion(data, 0, dataSize, dataVector.data());
+    //std::vector<double> dataVector(dataSize);
+    //env->GetDoubleArrayRegion(data, 0, dataSize, dataVector.data());
 
-    double frequency = signalProcessing->getSignalFrequency(dataVector, threshold, sampleRate, progressUpdateCallback);
-    SignalProcessing::bandPass(dataVector, sampleRate, (int)round(frequency), progressUpdateCallback);
+    //double frequency = signalProcessing->getSignalFrequency(dataVector, threshold, sampleRate, progressUpdateCallback);
+    //SignalProcessing::bandPass(dataVector, sampleRate, (int)round(frequency), progressUpdateCallback);
 
-    env->SetDoubleArrayRegion(data, 0, dataSize, dataVector.data());
+    //env->SetDoubleArrayRegion(data, 0, dataSize, dataVector.data());
 
     progressUpdateCallback(1.0);
 }

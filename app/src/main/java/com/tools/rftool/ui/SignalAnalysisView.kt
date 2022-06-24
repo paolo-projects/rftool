@@ -150,11 +150,11 @@ class SignalAnalysisView : View {
             (interpolatedData[0].time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
         var previousY =
             height - ((interpolatedData[0].value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
-        while (i < (width - axesPadding * 2) * 4) {
+        while (i < (width - axesPadding * 2) * 2) {
             val x =
-                (interpolatedData.get(i / 4f).time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
+                (interpolatedData.get(i / 2f).time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
             val y =
-                height - ((interpolatedData.get(i / 4f).value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
+                height - ((interpolatedData.get(i / 2f).value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
 
             canvas.drawLine(previousX, previousY, x, y, whitePaint)
             previousX = x
