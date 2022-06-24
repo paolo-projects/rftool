@@ -49,10 +49,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/fftw)
 target_link_libraries(rftool fftw3)
 target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw/api)
 
-add_subdirectory(DSPFilters)
-target_link_libraries(rftool DSPFilters)
-target_include_directories(rftool PUBLIC DSPFilters/include)
-
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library

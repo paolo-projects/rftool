@@ -2,7 +2,7 @@ package com.tools.rftool.util.validator
 
 import java.lang.NumberFormatException
 
-class GreaterThanIntegerValidator(private val greaterThan: Int, defaultValue: Int): Validator() {
+class GreaterThanIntegerValidator(private val greaterThan: Int, var defaultValue: Int): Validator() {
     override val DEFAULT_VALUE = defaultValue.toString()
 
     override fun validate(input: String): Boolean {

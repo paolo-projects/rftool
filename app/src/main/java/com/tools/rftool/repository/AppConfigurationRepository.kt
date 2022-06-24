@@ -28,7 +28,8 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
 
     private val sharedPreferences = context.getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE)
     private val defaultSampleRate = context.resources.getInteger(R.integer.default_sample_rate)
-    private val defaultCenterFrequency = context.resources.getInteger(R.integer.default_center_frequency)
+    private val defaultCenterFrequency =
+        context.resources.getInteger(R.integer.default_center_frequency)
     private val defaultGain = context.resources.getInteger(R.integer.default_gain)
     private val defaultPpmError = context.resources.getInteger(R.integer.default_ppm_error)
     private val defaultColorMap = 0
@@ -36,45 +37,92 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
     private val defaultAutoRecThreshold = 50f
     private val defaultAutoRecTimeMs = 1000
 
-    private val dispatcher = Dispatchers.IO
+    private val dispatcher = Dispatchers.Main
 
-    var sampleRate: Int
-        get() = sharedPreferences.getInt(PREFS_SAMPLE_RATE, defaultSampleRate)
-        set(value) = sharedPreferences.edit().putInt(PREFS_SAMPLE_RATE, value).apply()
+    private val _sampleRate =
+        MutableStateFlow(sharedPreferences.getInt(PREFS_SAMPLE_RATE, defaultSampleRate))
+    private val _centerFrequency =
+        MutableStateFlow(sharedPreferences.getInt(PREFS_CENTER_FREQUENCY, defaultCenterFrequency))
+    private val _gain = MutableStateFlow(sharedPreferences.getInt(PREFS_GAIN, defaultGain))
+    private val _ppmError =
+        MutableStateFlow(sharedPreferences.getInt(PREFS_PPM_ERROR, defaultPpmError))
+    private val _colorMap =
+        MutableStateFlow(sharedPreferences.getInt(PREFS_COLOR_MAP, defaultColorMap))
+    private val _autoRecEnabled = MutableStateFlow(
+        sharedPreferences.getBoolean(
+            PREFS_AUTO_RECORD_ENABLED, defaultAutoRecEnabled
+        )
+    )
+    private val _autoRecThreshold = MutableStateFlow(
+        sharedPreferences.getFloat(
+            PREFS_AUTO_RECORD_THRESHOLD, defaultAutoRecThreshold
+        )
+    )
+    private val _autoRecTimeMs =
+        MutableStateFlow(sharedPreferences.getInt(PREFS_AUTO_RECORD_TIME, defaultAutoRecTimeMs))
 
-    var centerFrequency: Int
-        get() = sharedPreferences.getInt(PREFS_CENTER_FREQUENCY, defaultCenterFrequency)
-        set(value) = sharedPreferences.edit().putInt(PREFS_CENTER_FREQUENCY, value).apply()
+    val sampleRate = _sampleRate.asStateFlow()
+    val centerFrequency = _centerFrequency.asStateFlow()
+    val gain = _gain.asStateFlow()
+    val ppmError = _ppmError.asStateFlow()
+    val colorMap = _colorMap.asStateFlow()
+    val autoRecEnabled = _autoRecEnabled.asStateFlow()
+    val autoRecThreshold = _autoRecThreshold.asStateFlow()
+    val autoRecTimeMs = _autoRecTimeMs.asStateFlow()
 
-    var gain: Int
-        get() = sharedPreferences.getInt(PREFS_GAIN, defaultGain)
-        set(value) = sharedPreferences.edit().putInt(PREFS_GAIN, value).apply()
-
-    var ppmError: Int
-        get() = sharedPreferences.getInt(PREFS_PPM_ERROR, defaultPpmError)
-        set(value) = sharedPreferences.edit().putInt(PREFS_PPM_ERROR, value).apply()
-
-    var colorMap: Int
-        get() = sharedPreferences.getInt(PREFS_COLOR_MAP, defaultColorMap)
-        set(value) = sharedPreferences.edit().putInt(PREFS_COLOR_MAP, value).apply()
-
-    var autoRecEnabled: Boolean
-        get() = sharedPreferences.getBoolean(PREFS_AUTO_RECORD_ENABLED, defaultAutoRecEnabled)
-        set(value) = sharedPreferences.edit().putBoolean(PREFS_AUTO_RECORD_ENABLED, value).apply()
-
-    var autoRecThreshold: Float
-        get() = sharedPreferences.getFloat(PREFS_AUTO_RECORD_THRESHOLD, defaultAutoRecThreshold)
-        set(value) {
-            sharedPreferences.edit().putFloat(PREFS_AUTO_RECORD_THRESHOLD, value).apply()
-            CoroutineScope(dispatcher + Job()).launch {
-                _autoRecThresholdFlow.emit(value)
-            }
+    fun setSampleRate(value: Int) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_SAMPLE_RATE, value).commit()
+            _sampleRate.emit(value)
         }
+    }
 
-    var autoRecTimeMs: Int
-        get() = sharedPreferences.getInt(PREFS_AUTO_RECORD_TIME, defaultAutoRecTimeMs)
-        set(value) = sharedPreferences.edit().putInt(PREFS_AUTO_RECORD_TIME, value).apply()
+    fun setCenterFrequency(value: Int) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_CENTER_FREQUENCY, value).commit()
+            _centerFrequency.emit(value)
+        }
+    }
 
-    private val _autoRecThresholdFlow = MutableStateFlow(autoRecThreshold)
-    val autoRecThresholdFlow = _autoRecThresholdFlow.asStateFlow()
+    fun setGain(value: Int) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_GAIN, value).commit()
+            _gain.emit(value)
+        }
+    }
+
+    fun setPpmError(value: Int) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_PPM_ERROR, value).commit()
+            _ppmError.emit(value)
+        }
+    }
+
+    fun setColorMap(value: Int) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_COLOR_MAP, value).commit()
+            _colorMap.emit(value)
+        }
+    }
+
+    fun setAutoRecEnabled(value: Boolean) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putBoolean(PREFS_AUTO_RECORD_ENABLED, value).commit()
+            _autoRecEnabled.emit(value)
+        }
+    }
+
+    fun setAutoRecThreshold(value: Float) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putFloat(PREFS_AUTO_RECORD_THRESHOLD, value).commit()
+            _autoRecThreshold.emit(value)
+        }
+    }
+
+    fun setAutoRecTimeMs(value: Int) {
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_AUTO_RECORD_TIME, value).commit()
+            _autoRecTimeMs.emit(value)
+        }
+    }
 }

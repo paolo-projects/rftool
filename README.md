@@ -30,7 +30,7 @@ with the provided parameters and start reading the RF signal.
 
 The bottom menu lets you select different views with different metrics for the current signal being received.
 
-### The FFT Screen
+### The Spectrogram/FFT Screen
 
 The FFT view will display a spectrogram of the current signal received. The spectrogram color map can be
 adjusted to:
@@ -63,7 +63,7 @@ soon as it happens. The parameters for the Auto-Rec function are:
   for a while to find the noise baseline and set up the threshold value accordingly. The higher the threshold, the less
   sensible the recorder will be, while setting a low threshold could lead to recording noise or very weak signals that
   have little use.
-- __Recording time__: The milliseconds to record. This value can be set to 1000 ms at maximum.
+- __Recording time__: The milliseconds to record.
 
 ## Credits
 
@@ -75,10 +75,6 @@ Library used for FFT implementation
 
 An adapted version of this library is used for communicating with the RtlSdr device
 through libusb
-
-### [DSP Filters](https://github.com/vinniefalco/DSPFilters)
-
-Library used for signal analysis
 
 ### [SPSC queue](https://github.com/cameron314/readerwriterqueue)
 

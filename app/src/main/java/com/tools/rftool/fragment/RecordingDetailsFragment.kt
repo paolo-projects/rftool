@@ -116,7 +116,7 @@ class RecordingDetailsFragment private constructor() : BottomSheetDialogFragment
             signalDecoder =
                 SignalDecoder(
                     displayedEntry.sampleRate,
-                    appConfiguration.autoRecThreshold.toDouble()
+                    appConfiguration.autoRecThreshold.value.toDouble()
                 )
 
             val data = recordedSignalLoadTask.readFromFile()

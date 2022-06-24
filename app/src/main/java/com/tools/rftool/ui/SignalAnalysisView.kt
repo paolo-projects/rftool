@@ -19,7 +19,8 @@ import com.tools.rftool.R
 import com.tools.rftool.adapter.SignalDataPoint
 import com.tools.rftool.data.DataRange
 import com.tools.rftool.adapter.SignalAnalysisViewAdapter
-import com.tools.rftool.utils.downsampling.LTThreeBuckets
+import com.tools.rftool.util.downsampling.InterpolatedListAccessor
+import com.tools.rftool.util.downsampling.LTThreeBuckets
 import kotlin.math.roundToInt
 
 class SignalAnalysisView : View {
@@ -129,7 +130,7 @@ class SignalAnalysisView : View {
                 minX = (((lastX - firstX) * dataRange.min).roundToInt() + firstX).toInt()
                 maxX = (((lastX - firstX) * dataRange.max).roundToInt() + firstX).toInt()
 
-                if(!isTouching) {
+                if (!isTouching) {
                     drawPoints(canvas, minX, maxX, minY, maxY)
                 }
                 drawAxes(canvas, minX, maxX, minY, maxY)
@@ -138,24 +139,22 @@ class SignalAnalysisView : View {
     }
 
     private fun drawPoints(canvas: Canvas, minX: Int, maxX: Int, minY: Double, maxY: Double) {
-        // We take for granted here that the X values are equal to the indices of the list
-        val dataSubset = _adapter!!.getAll().subList(minX, maxX)
-        val points = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            decimatedPoints(dataSubset)
-        } else {
-            dataSubset
-        }
+        /* Draw as many points as the pixels on the screen (or a multiple of it) */
+        val data = _adapter!!.getAll()
+        val interpolatedData = InterpolatedListAccessor(data)
+        interpolatedData.viewRange = 0 to width - axesPadding * 2
+        interpolatedData.dataRange = minX to maxX
 
         var i = 1
         var previousX =
-            (points[0].time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
+            (interpolatedData[0].time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
         var previousY =
-            height - ((points[0].value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
-        while (i < points.size) {
+            height - ((interpolatedData[0].value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
+        while (i < (width - axesPadding * 2) * 4) {
             val x =
-                (points[i].time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
+                (interpolatedData.get(i / 4f).time - minX).toFloat() / (maxX - minX) * (width - axesPadding * 2) + axesPadding
             val y =
-                height - ((points[i].value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
+                height - ((interpolatedData.get(i / 4f).value - minY).toFloat() / (maxY - minY).toFloat() * (height - axesPadding * 2) + axesPadding)
 
             canvas.drawLine(previousX, previousY, x, y, whitePaint)
             previousX = x
@@ -280,7 +279,7 @@ class SignalAnalysisView : View {
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        when(event.action) {
+        when (event.action) {
             MotionEvent.ACTION_DOWN -> downSampledSize = 512
             MotionEvent.ACTION_UP -> {
                 downSampledSize = defaultDownSampledSize
@@ -360,7 +359,7 @@ class SignalAnalysisView : View {
             val newRangeSize = (rangeSize * factor).coerceAtLeast(0.001f).coerceAtMost(1f)
 
             val sizeL = newRangeSize * rangeCenter
-            val sizeR = newRangeSize * (1-rangeCenter)
+            val sizeR = newRangeSize * (1 - rangeCenter)
             val newMin = (rangeCenter - sizeL).coerceAtLeast(0f)
             val newMax = (rangeCenter + sizeR).coerceAtMost(1f)
             dataRange.min = newMin

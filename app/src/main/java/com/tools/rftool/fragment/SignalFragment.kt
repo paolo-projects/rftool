@@ -43,17 +43,19 @@ class SignalFragment : Fragment() {
         signalPowerPlotAdapter = RealTimePlotAdapter()
         binding.rtpSignalStrength.adapter = signalPowerPlotAdapter
         binding.rtpSignalStrength.title = getString(R.string.chart_signal_power_title)
-        binding.fftPowerBar.treshold = appConfigurationRepository.autoRecThreshold
+        binding.fftPowerBar.treshold = appConfigurationRepository.autoRecThreshold.value
 
         lifecycleScope.launch {
-            sdrDeviceViewModel.fftSignalMax.collect {
-                binding.fftPowerBar.value = it
-                signalPowerPlotAdapter.add(it)
+            async {
+                sdrDeviceViewModel.fftSignalMax.collect {
+                    binding.fftPowerBar.value = it
+                    signalPowerPlotAdapter.add(it)
+                }
             }
-        }
-        lifecycleScope.launch {
-            appConfigurationRepository.autoRecThresholdFlow.collect {
-                binding.fftPowerBar.treshold = it
+            async {
+                appConfigurationRepository.autoRecThreshold.collect {
+                    binding.fftPowerBar.treshold = it
+                }
             }
         }
     }

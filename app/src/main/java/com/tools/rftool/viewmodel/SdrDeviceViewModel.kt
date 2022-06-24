@@ -167,8 +167,8 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
     }
 
     override fun onFftMax(fftMax: Double) {
-        if (appConfigurationRepository.autoRecEnabled && fftMax > appConfigurationRepository.autoRecThreshold) {
-            recorder.record(appConfigurationRepository.autoRecTimeMs, sampleRate, centerFrequency)
+        if (appConfigurationRepository.autoRecEnabled.value && fftMax > appConfigurationRepository.autoRecThreshold.value) {
+            recorder.record(appConfigurationRepository.autoRecTimeMs.value, sampleRate, centerFrequency)
         }
         viewModelScope.launch {
             _fftSignalMax.emit(fftMax)

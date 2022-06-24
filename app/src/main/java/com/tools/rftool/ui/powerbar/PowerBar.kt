@@ -38,7 +38,7 @@ class PowerBar: View {
         color = 0xFFFF0000.toInt()
     }
 
-    private val barWidth = 64
+    private val barWidth = 96
     private val dashWidth = 20
     private val textHeight = 24
     private val textPadding = 16
@@ -85,7 +85,7 @@ class PowerBar: View {
         while(y < height - textPadding) {
             canvas.drawRect(barWidth.toFloat() + textPadding, y.toFloat() + textHeight / 2f - 2, barWidth.toFloat() + textPadding + dashWidth, y.toFloat() + textHeight / 2f + 2, paint)
             val value = (height - (y + textHeight/2.0)) / height * (max - min) + min
-            val valueString = "%.0f".format(value)
+            val valueString = "%.2f".format(value)
             canvas.drawText(valueString, barWidth.toFloat() + textPadding * 2 + dashWidth, y.toFloat() + textHeight, textPaint)
             y += textHeight + textPadding
         }
@@ -114,7 +114,7 @@ class PowerBar: View {
             textSize = textHeight.toFloat()
         }
 
-        val maxText = "%.0f".format(max)
+        val maxText = "%.2f".format(max)
         val maxTextWidth = textPainter.measureText(maxText)
 
         width = ceil(barWidth + textPadding*2 + dashWidth + maxTextWidth + textPadding).toInt()

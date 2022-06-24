@@ -53,9 +53,9 @@ class RecordedSignalLoadTask(private val context: Context, private val recording
         // Need a better bandpass implementation
         // I'm not good at DSP
 
-        //val signalProcessing = SignalProcessing(this)
-        //signalProcessing.filterDataToSignalFrequency(result, recording.sampleRate, threshold)
-        //signalProcessing.destroy()
+        val signalProcessing = SignalProcessing(this)
+        signalProcessing.filterDataToSignalFrequency(result, recording.sampleRate, threshold)
+        signalProcessing.destroy()
 
         for (i in result.indices step 2) {
             data.add(SignalDataPoint((i / 2).toLong(), result[i]))

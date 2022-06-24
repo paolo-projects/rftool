@@ -6,11 +6,12 @@
 #define RFTOOL_SIGNALPROCESSING_H
 
 #include <jni.h>
-#include <DspFilters/Butterworth.h>
 #include <complex.h>
 #include <fftw3.h>
 #include <algorithm>
 #include <vector>
+
+#include "BandPass.h"
 
 #define sqr(x) ((x)*(x))
 

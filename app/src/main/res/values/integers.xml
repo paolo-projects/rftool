@@ -10,4 +10,12 @@
     <integer name="default_gain">38</integer>
     <!-- 5 Ppm (f = 1 MHz -> ppm = 1 Hz) -->
     <integer name="default_ppm_error">5</integer>
+
+    <integer name="tuner_frequency_min">24000000</integer>
+    <integer name="tuner_frequency_max">1766000000</integer>
+
+    <integer name="sample_rate_range1_min">225001</integer>
+    <integer name="sample_rate_range1_max">300000</integer>
+    <integer name="sample_rate_range2_min">900001</integer>
+    <integer name="sample_rate_range2_max">3200000</integer>
 </resources>

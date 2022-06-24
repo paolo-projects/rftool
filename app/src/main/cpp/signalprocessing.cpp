@@ -16,29 +16,26 @@ SignalProcessing::~SignalProcessing() {
 
 void SignalProcessing::bandPass(std::vector<double> &data, int sampleRate, int frequency,
                                 const std::function<void(jdouble)> &progressCallback) {
-    std::vector<double> real(data.size() / 2);
-    std::vector<double> imag(data.size() / 2);
+    std::vector<ComplexNumber<double>> input(data.size() / 2);
 
-    for(int i = 0; i < data.size(); i++) {
-        if(i % 2 == 0) {
-            real[i / 2] = data[i];
-        } else {
-            imag[i / 2] = data[i];
-        }
+    /*
+    for (int i = 0; i < data.size() / 2; i += 2) {
+        input[i].r = data[i * 2];
+        input[i].i  =data[i * 2 + 1];
     }
+    */
+    memcpy(input.data(), data.data(), sizeof(double)*data.size());
 
-    Dsp::SimpleFilter<Dsp::Butterworth::BandPass<8>, 1> filter;
-    filter.setup(8, sampleRate, std::abs(frequency), sampleRate / 15.0);
-    double *channels[] = {
-            real.data(),
-            //imag.data()
-    };
-    filter.process(data.size() / 2, channels);
+    BandPass<double> filter(frequency, sampleRate);
+    auto output = filter.filter(input);
 
-    for(int i = 0; i < data.size() / 2; i++) {
-        data[i*2] = real[i];
-        //data[i*2+1] = imag[i];
+    memcpy(data.data(), output.data(), sizeof(ComplexNumber<double>)*output.size());
+    /*
+    for (int i = 0; i < data.size() / 2; i += 2) {
+        data[i * 2] = output[i].r;
+        data[i * 2 + 1] = output[i].i;
     }
+    */
 
     progressCallback(1.0);
 }
@@ -51,12 +48,12 @@ double SignalProcessing::getSignalFrequency(const std::vector<double> &data, dou
     unsigned int maxIndexCount = 0;
 
     fftw_plan fft_plan = fftw_plan_dft_1d(fftSize, inData,
-                                outData, FFTW_FORWARD, FFTW_ESTIMATE);
+                                          outData, FFTW_FORWARD, FFTW_ESTIMATE);
 
     const int fftCount = std::floor(data.size() / (fftSize * 2));
     for (int i = 0; i < fftCount; i += 2) {
         // Copy into the FFT input buffer
-        memcpy(inData, &data[i*fftSize*2], fftSize*2*sizeof(double));
+        memcpy(inData, &data[i * fftSize * 2], fftSize * 2 * sizeof(double));
 
         // Execute FFT
         fftw_execute(fft_plan);

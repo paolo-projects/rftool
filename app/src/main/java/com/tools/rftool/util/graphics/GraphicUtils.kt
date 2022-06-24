@@ -7,14 +7,11 @@ import android.graphics.Rect
 import android.text.StaticLayout
 import android.text.TextPaint
 
-fun Canvas.drawFftParams(sampleRate: Int, centerFrequency: Int) {
+fun Canvas.drawFftParams(sampleRate: Int, centerFrequency: Int, boxHeight: Int = 56, textSize: Int = 24) {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     paint.color = 0xFF000000.toInt()
 
     // Draw a black rectangle at the bottom
-    val boxHeight = 56
-    val textSize = 24
-
     drawRect(0f, height - boxHeight.toFloat(), width.toFloat(), height.toFloat(), paint)
 
     val lowFreq = centerFrequency - sampleRate / 2

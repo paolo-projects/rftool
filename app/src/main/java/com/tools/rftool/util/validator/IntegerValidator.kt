@@ -2,7 +2,7 @@ package com.tools.rftool.util.validator
 
 import java.lang.NumberFormatException
 
-class IntegerValidator(defaultValue: Int): Validator() {
+class IntegerValidator(var defaultValue: Int): Validator() {
     override val DEFAULT_VALUE: String = defaultValue.toString()
 
     override fun validate(input: String): Boolean {

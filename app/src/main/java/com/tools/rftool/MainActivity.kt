@@ -42,7 +42,7 @@ import kotlin.math.sqrt
 
 @AndroidEntryPoint
 class MainActivity :
-    AppCompatActivity(), UsbPermissionsHelper.PermissionResultListener{
+    AppCompatActivity(), UsbPermissionsHelper.PermissionResultListener {
     @Inject
     lateinit var appConfiguration: AppConfigurationRepository
 
@@ -77,36 +77,81 @@ class MainActivity :
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_baseline_menu_24)
 
-        binding.navigationViewLayout.tfSampleRate.editText?.setText(appConfiguration.sampleRate.toString())
-        binding.navigationViewLayout.tfCenterFrequency.editText?.setText(appConfiguration.centerFrequency.toString())
-        binding.navigationViewLayout.tfGain.editText?.setText(appConfiguration.gain.toString())
-        binding.navigationViewLayout.tfPpmError.editText?.setText(appConfiguration.ppmError.toString())
-        val colorMapTextView =
-            binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
-        colorMapTextView.setText(
-            colorMapTextView.adapter.getItem(appConfiguration.colorMap).toString(), false
-        )
-        binding.navigationViewLayout.swAutoRec.isChecked = appConfiguration.autoRecEnabled
-        binding.navigationViewLayout.tfAutoRecTreshold.editText?.setText(
-            "%.2f".format(
-                appConfiguration.autoRecThreshold
+
+        val sampleRateValidator = SampleRateInputValidator(this, appConfiguration.sampleRate.value)
+        val frequencyValidator =
+            FrequencyInputValidator(this, appConfiguration.centerFrequency.value)
+        val gainValidator =
+            GreaterThanIntegerValidator(0, appConfiguration.gain.value)
+        val ppmErrorValidator =
+            IntegerValidator(
+                appConfiguration.ppmError.value
             )
-        )
-        binding.navigationViewLayout.tfAutoRecTime.editText?.setText(appConfiguration.autoRecTimeMs.toString())
+
+        lifecycleScope.launch {
+            async {
+                appConfiguration.sampleRate.collect {
+                    binding.navigationViewLayout.tfSampleRate.editText?.setText(it.toString())
+                    sampleRateValidator.defaultValue = it
+                }
+            }
+            async {
+                appConfiguration.centerFrequency.collect {
+                    binding.navigationViewLayout.tfCenterFrequency.editText?.setText(it.toString())
+                    frequencyValidator.defaultValue = it
+                }
+            }
+            async {
+                appConfiguration.gain.collect {
+                    binding.navigationViewLayout.tfGain.editText?.setText(it.toString())
+                    gainValidator.defaultValue = it
+                }
+            }
+            async {
+                appConfiguration.ppmError.collect {
+                    binding.navigationViewLayout.tfPpmError.editText?.setText(it.toString())
+                    ppmErrorValidator.defaultValue = it
+                }
+            }
+            async {
+                appConfiguration.colorMap.collect {
+                    val textView =
+                        (binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView)
+                    textView.setText(
+                        textView.adapter.getItem(it) as String, false
+                    )
+                }
+            }
+            async {
+                appConfiguration.autoRecEnabled.collect {
+                    binding.navigationViewLayout.swAutoRec.isChecked = it
+                }
+            }
+            async {
+                appConfiguration.autoRecThreshold.collect {
+                    binding.navigationViewLayout.tfAutoRecTreshold.editText?.setText(
+                        "%.2f".format(it)
+                    )
+                }
+            }
+            async {
+                appConfiguration.autoRecTimeMs.collect {
+                    binding.navigationViewLayout.tfAutoRecTime.editText?.setText(it.toString())
+                }
+            }
+        }
 
         binding.navigationViewLayout.tfSampleRate.editText!!.setFocusLostValidator(
-            SampleRateInputValidator(appConfiguration.sampleRate)
+            sampleRateValidator
         )
         binding.navigationViewLayout.tfCenterFrequency.editText!!.setFocusLostValidator(
-            FrequencyInputValidator(appConfiguration.centerFrequency)
+            frequencyValidator
         )
         binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(
-            GreaterThanIntegerValidator(0, appConfiguration.gain)
+            gainValidator
         )
-        binding.navigationViewLayout.tfGain.editText!!.setFocusLostValidator(
-            IntegerValidator(
-                appConfiguration.ppmError
-            )
+        binding.navigationViewLayout.tfPpmError.editText!!.setFocusLostValidator(
+            ppmErrorValidator
         )
 
         binding.navigationViewLayout.btnRfApply.setOnClickListener(onSaveNewConfiguration)
@@ -129,8 +174,10 @@ class MainActivity :
             async {
                 sdrDeviceViewModel.recordingEvents.collect {
                     when (it) {
-                        Recorder.RecordingEvent.ONGOING -> binding.recordingProgressBar.visibility = View.VISIBLE
-                        Recorder.RecordingEvent.FINISHED -> binding.recordingProgressBar.visibility = View.INVISIBLE
+                        Recorder.RecordingEvent.ONGOING -> binding.recordingProgressBar.visibility =
+                            View.VISIBLE
+                        Recorder.RecordingEvent.FINISHED -> binding.recordingProgressBar.visibility =
+                            View.INVISIBLE
                     }
                 }
             }
@@ -148,6 +195,7 @@ class MainActivity :
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         }
+
         override fun onServiceDisconnected(name: ComponentName?) {
         }
     }
@@ -165,16 +213,17 @@ class MainActivity :
     }
 
     private val onAutoRecApply = { _: View ->
-        appConfiguration.autoRecEnabled = binding.navigationViewLayout.swAutoRec.isChecked
+        appConfiguration.setAutoRecEnabled(binding.navigationViewLayout.swAutoRec.isChecked)
 
         try {
             var numValue =
-                binding.navigationViewLayout.tfAutoRecTreshold.editText!!.text.toString().replace(",", ".").toFloat()
+                binding.navigationViewLayout.tfAutoRecTreshold.editText!!.text.toString()
+                    .replace(",", ".").toFloat()
             if (numValue < 0) {
                 numValue = 50f
             }
             binding.navigationViewLayout.tfAutoRecTreshold.editText!!.setText("%.2f".format(numValue))
-            appConfiguration.autoRecThreshold = numValue
+            appConfiguration.setAutoRecThreshold(numValue)
         } catch (exc: NumberFormatException) {
             binding.navigationViewLayout.tfAutoRecTreshold.editText!!.setText(
                 "%.2f".format(
@@ -191,7 +240,7 @@ class MainActivity :
                 numValue = minTimeValue
             }
             binding.navigationViewLayout.tfAutoRecTime.editText!!.setText(numValue.toString())
-            appConfiguration.autoRecTimeMs = numValue
+            appConfiguration.setAutoRecTimeMs(numValue)
         } catch (exc: NumberFormatException) {
             binding.navigationViewLayout.tfAutoRecTime.editText!!.setText(appConfiguration.autoRecTimeMs.toString())
         }
@@ -224,11 +273,11 @@ class MainActivity :
                     }
                 }
 
-                appConfiguration.sampleRate = sampleRate
-                appConfiguration.centerFrequency = centerFrequency
-                appConfiguration.gain = gain
-                appConfiguration.ppmError = ppmError
-                appConfiguration.colorMap = colorMap
+                appConfiguration.setSampleRate(sampleRate)
+                appConfiguration.setCenterFrequency(centerFrequency)
+                appConfiguration.setGain(gain)
+                appConfiguration.setPpmError(ppmError)
+                appConfiguration.setColorMap(colorMap)
 
                 sdrDeviceViewModel.updateParams(sampleRate, centerFrequency, gain)
                 sdrDeviceViewModel.setColorMap(colorMap)
@@ -280,11 +329,11 @@ class MainActivity :
         sdrDeviceViewModel.initDevice(
             device,
             connection,
-            appConfiguration.sampleRate,
-            appConfiguration.centerFrequency,
-            appConfiguration.gain,
-            appConfiguration.ppmError,
-            appConfiguration.colorMap
+            appConfiguration.sampleRate.value,
+            appConfiguration.centerFrequency.value,
+            appConfiguration.gain.value,
+            appConfiguration.ppmError.value,
+            appConfiguration.colorMap.value
         )
         invalidateOptionsMenu()
     }
@@ -353,7 +402,10 @@ class MainActivity :
         menu.findItem(R.id.usb_start_stop).apply {
             icon =
                 getDrawable(if (sdrDeviceViewModel.deviceConnected.value) R.drawable.ic_baseline_stop_24 else R.drawable.ic_baseline_play_arrow_24)
-            title = if(sdrDeviceViewModel.deviceConnected.value) getString(R.string.menu_start) else getString(R.string.menu_stop)
+            title =
+                if (sdrDeviceViewModel.deviceConnected.value) getString(R.string.menu_start) else getString(
+                    R.string.menu_stop
+                )
 
             isEnabled = sdrDeviceViewModel.devicePermissionsStatus.value
             icon.alpha = if (sdrDeviceViewModel.devicePermissionsStatus.value) 255 else 130

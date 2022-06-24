@@ -10,10 +10,12 @@ import androidx.lifecycle.lifecycleScope
 import com.tools.rftool.databinding.FragmentFftBinding
 import com.tools.rftool.repository.AppConfigurationRepository
 import com.tools.rftool.ui.spectrogram.FftTimeSeriesSpectrogramAdapter
+import com.tools.rftool.ui.spectrogram.Spectrogram
 import com.tools.rftool.viewmodel.SdrDeviceViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -25,7 +27,8 @@ class FftFragment : Fragment() {
 
     private lateinit var binding: FragmentFftBinding
 
-    @Inject lateinit var appConfiguration: AppConfigurationRepository
+    @Inject
+    lateinit var appConfiguration: AppConfigurationRepository
     private val sdrDeviceViewModel by activityViewModels<SdrDeviceViewModel>()
     private val spectrogramAdapter = FftTimeSeriesSpectrogramAdapter()
 
@@ -42,10 +45,19 @@ class FftFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.spectrogram.adapter = spectrogramAdapter
-        binding.spectrogram.sampleRate = appConfiguration.sampleRate
-        binding.spectrogram.centerFrequency = appConfiguration.centerFrequency
+        binding.spectrogram.setOnCenterFrequencyChangeListener(centerFrequencyChangeListener)
 
         lifecycleScope.launch {
+            async {
+                appConfiguration.sampleRate.collect {
+                    binding.spectrogram.sampleRate = it
+                }
+            }
+            async {
+                appConfiguration.centerFrequency.collect {
+                    binding.spectrogram.centerFrequency = it
+                }
+            }
             async {
                 sdrDeviceViewModel.deviceConnected.collect(deviceStatusChanged)
             }
@@ -68,6 +80,17 @@ class FftFragment : Fragment() {
             binding.progressBar.visibility = View.VISIBLE
         } else {
             binding.progressBar.visibility = View.INVISIBLE
+        }
+    }
+
+    private val centerFrequencyChangeListener = object : Spectrogram.CenterFrequencyChangeListener {
+        override fun onCenterFrequencyChange(newFrequency: Int) {
+            appConfiguration.setCenterFrequency(newFrequency)
+            sdrDeviceViewModel.updateParams(
+                appConfiguration.sampleRate.value,
+                newFrequency,
+                appConfiguration.gain.value
+            )
         }
     }
 }
