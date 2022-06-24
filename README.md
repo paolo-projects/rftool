@@ -19,9 +19,10 @@ and then selected the one at the given index.
 The modified method takes an USB file descriptor where the necessary permissions have already been 
 granted and the connection secured.
 
-Additionally, the native code uses the KissFFT library to perform the Fourier transform on the received
-data, sets up a specific thread for the FFT and spectrogram update. The FFT is also used to detect
-a signal above a certain threshold, so to start recording the signal when set up in auto-record mode.
+Additionally, the native code uses the [fftw](https://www.fftw.org/) library to perform the Fourier 
+transform on the received data, sets up a specific thread for the FFT and spectrogram update. 
+The FFT is also used to detect a signal above a certain threshold, so to start recording the signal
+when set up in auto-record mode.
 
 ## Functions
 
@@ -48,6 +49,8 @@ maximum in the FFT. The signal power is also used for signal detection by the au
 
 This view displays the recorded signals that you can view and share to other apps. The recording files are named
 with the time they've been recorded, the sample rate and tuned frequency.
+
+---
 
 ### The settings
 
