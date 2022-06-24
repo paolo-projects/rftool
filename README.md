@@ -40,6 +40,9 @@ adjusted to:
 - __Heat__: The intensity goes from yellow to red
 - __Rainbow__: Most of the color spectrum is used, from blue to red
 
+The black band at the bottom of the spectrogram, where the frequencies are displayed, can be dragged around
+to change the tuned frequency.
+
 ### The Signal screen
 
 This view displays the real-time signal power through a meter bar and a time plot. The signal power is the absolute 
