@@ -7,3 +7,6 @@
 [submodule "app/src/main/cpp/librtlsdr"]
 	path = app/src/main/cpp/librtlsdr
 	url = https://github.com/paolo-projects/librtlsdr-android
+[submodule "app/src/main/cpp/fftw"]
+	path = app/src/main/cpp/fftw
+	url = https://github.com/paolo-projects/fftw-source
