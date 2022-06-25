@@ -5,6 +5,9 @@ RTL SDR device.
 
 ## App Structure
 
+| <img src="showcase/rftool_fft.jpg" /> | <img src="showcase/rftool_signal.jpg" /> | <img src="showcase/rftool_recordings.jpg" /> |
+|---------------------------------------|------------------------------------------|----------------------------------------------|
+
 This app consists of the Kotlin/Java module which takes care of the "display" part and user interaction,
 and the native library taking care of communicating with the RtlSdr USB device, doing the math (FFT),
 and updating the graphics such as the spectrogram.
