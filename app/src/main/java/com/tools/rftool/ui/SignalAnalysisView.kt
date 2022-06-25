@@ -20,7 +20,6 @@ import com.tools.rftool.adapter.SignalDataPoint
 import com.tools.rftool.data.DataRange
 import com.tools.rftool.adapter.SignalAnalysisViewAdapter
 import com.tools.rftool.util.downsampling.InterpolatedListAccessor
-import com.tools.rftool.util.downsampling.LTThreeBuckets
 import kotlin.math.roundToInt
 
 class SignalAnalysisView : View {
@@ -160,15 +159,6 @@ class SignalAnalysisView : View {
             previousX = x
             previousY = y
             i++
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun decimatedPoints(data: List<SignalDataPoint>): List<SignalDataPoint> {
-        return if (data.size > (downSampledSize * 2)) {
-            LTThreeBuckets.sorted(data, downSampledSize - 2)
-        } else {
-            data
         }
     }
 
