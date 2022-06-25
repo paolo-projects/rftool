@@ -58,7 +58,7 @@ class RecordedSignalLoadTask(private val context: Context, private val recording
         signalProcessing.destroy()
 
         for (i in result.indices step 2) {
-            data.add(SignalDataPoint((i / 2).toLong(), result[i]))
+            data.add(SignalDataPoint((i / 2).toLong(), result[i] + result[i+1]))
         }
 
         return data

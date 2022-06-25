@@ -2,7 +2,7 @@
 // Created by paolo on 21/06/22.
 //
 
-#include "signalprocessing.h"
+#include "SignalProcessing.h"
 
 SignalProcessing::SignalProcessing(int fftSize) : fftSize(fftSize) {
     inData = (fftw_complex *) fftw_malloc(fftSize * sizeof(fftw_complex));

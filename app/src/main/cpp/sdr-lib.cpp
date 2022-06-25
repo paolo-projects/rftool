@@ -48,7 +48,9 @@ std::vector<int> gains;
 
 // Private forward declarations
 void dataReadingExecutor(JavaVM *jvm, JNIEnv *env);
+
 void restoreDataSize();
+
 const void readData(jint size);
 
 // Implementations
@@ -305,7 +307,8 @@ const void readData(jint size) {
 
     {
         std::unique_lock<std::mutex> lock(rtlSdrMtx);
-        if ((err = rtlsdr_read_sync(device, sdrDeviceReadBuffer.data(), goodSize, &bytesRead)) < 0) {
+        if ((err = rtlsdr_read_sync(device, sdrDeviceReadBuffer.data(), goodSize, &bytesRead)) <
+            0) {
             __android_log_print(ANDROID_LOG_ERROR, TAG, "Failed to read from device. %s",
                                 libusbErrorCodes[(libusb_error) err].c_str());
             throw std::runtime_error("Failed to read from device");
@@ -316,7 +319,8 @@ const void readData(jint size) {
     recorderThread->appendData(sdrDeviceReadBuffer, bytesRead);
     fftTrd->push(sdrDeviceReadBuffer, bytesRead);
     auto end_time = hrc::now();
-    __android_log_print(ANDROID_LOG_VERBOSE, TAG, "recorderthread, fft overhead = %d ms", chr::duration_cast<chr::milliseconds>(end_time - start_time).count());
+    __android_log_print(ANDROID_LOG_VERBOSE, TAG, "recorderthread, fft overhead = %lld ms",
+                        chr::duration_cast<chr::milliseconds>(end_time - start_time).count());
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -380,7 +384,7 @@ void restoreDataSize() {
     dataSize = 5120;
 }
 
-void setColorMap(const char* colorMap) {
+void setColorMap(const char *colorMap) {
     if (fftTrd != nullptr) {
         if (strcmp(colorMap, "grayscale") == 0) {
             fftTrd->setColorMap(COLOR_MAP_GRAYSCALE);

@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <vector>
-#include "signalprocessing.h"
+#include "SignalProcessing.h"
 
 SignalProcessing* signalProcessing = nullptr;
 
