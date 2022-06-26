@@ -30,6 +30,7 @@ import com.tools.rftool.rtlsdr.Recorder
 import com.tools.rftool.service.FileSystemWatcherService
 import com.tools.rftool.ui.DepthPageTransformer
 import com.tools.rftool.ui.animation.ButtonAnimation
+import com.tools.rftool.util.usb.UsbDevicesRetriever
 import com.tools.rftool.util.validator.*
 import com.tools.rftool.viewmodel.SdrDeviceViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -351,10 +352,9 @@ class MainActivity :
 
     private fun attemptConnectDevice() {
         val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceFilterRetriever = UsbDevicesRetriever(this, R.xml.device_filter)
         val device = usbManager.deviceList.values.firstOrNull {
-            it.vendorId == resources.getInteger(R.integer.rtl_sdr_vid) && it.productId == resources.getInteger(
-                R.integer.rtl_sdr_pid
-            )
+            deviceFilterRetriever.includes(it.vendorId, it.productId)
         }
 
         if (device != null) {

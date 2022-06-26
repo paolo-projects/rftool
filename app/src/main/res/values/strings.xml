@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">RFTool</string>
 
-    <string translatable="false" name="file_provider_authority">com.tools.rftool.fileprovider</string>
+    <string name="file_provider_authority" translatable="false">com.tools.rftool.fileprovider</string>
 
     <string name="error_entries_delete_failed">Some entries could not be deleted</string>
     <string name="confirm_delete_entries_message">Are you sure you want to delete the entries?</string>

@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="rtl_sdr_vid">3034</integer>
-    <integer name="rtl_sdr_pid">10296</integer>
-
     <!-- 1.6 MHz -->
     <integer name="default_sample_rate">1600000</integer>
     <!-- 433.92 MHz -->

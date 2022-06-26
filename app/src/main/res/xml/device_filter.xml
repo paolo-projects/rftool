@@ -1,4 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Generic RTL2832U -->
+    <usb-device vendor-id="3034" product-id="10290" />
+    <!-- Generic RTL2832U OEM -->
     <usb-device vendor-id="3034" product-id="10296" />
+    <!-- DigitalNow Quad DVB-T PCI-E card -->
+    <usb-device vendor-id="1043" product-id="26240" />
+    <!-- Leadtek WinFast DTV Dongle mini D -->
+    <usb-device vendor-id="1043" product-id="28431" />
+    <!-- Genius TVGo DVB-T03 USB dongle (Ver. B) -->
+    <usb-device vendor-id="1112" product-id="28799" />
+    <!-- Terratec Cinergy T Stick Black (rev 1) -->
+    <usb-device vendor-id="3277" product-id="169" />
+    <!-- Terratec NOXON DAB/DAB+ USB dongle (rev 1) -->
+    <usb-device vendor-id="3277" product-id="179" />
+    <!-- Terratec Deutschlandradio DAB Stick -->
+    <usb-device vendor-id="3277" product-id="180" />
+    <!-- Terratec NOXON DAB Stick - Radio Energy -->
+    <usb-device vendor-id="3277" product-id="181" />
+    <!-- Terratec Media Broadcast DAB Stick -->
+    <usb-device vendor-id="3277" product-id="183" />
+    <!-- Terratec BR DAB Stick -->
+    <usb-device vendor-id="3277" product-id="184" />
+    <!-- Terratec WDR DAB Stick -->
+    <usb-device vendor-id="3277" product-id="185" />
+    <!-- Terratec MuellerVerlag DAB Stick -->
+    <usb-device vendor-id="3277" product-id="192" />
+    <!-- Terratec Fraunhofer DAB Stick -->
+    <usb-device vendor-id="3277" product-id="198" />
+    <!-- Terratec Cinergy T Stick RC (Rev.3) -->
+    <usb-device vendor-id="3277" product-id="211" />
+    <!-- Terratec T Stick PLUS -->
+    <usb-device vendor-id="3277" product-id="215" />
+    <!-- Terratec NOXON DAB/DAB+ USB dongle (rev 2) -->
+    <usb-device vendor-id="3277" product-id="224" />
+    <!-- PixelView PV-DT235U(RN) -->
+    <usb-device vendor-id="5460" product-id="20512" />
+    <!-- Astrometa DVB-T/DVB-T2 -->
+    <usb-device vendor-id="5620" product-id="305" />
+    <!-- HanfTek DAB+FM+DVB-T -->
+    <usb-device vendor-id="5620" product-id="307" />
+    <!-- Compro Videomate U620F -->
+    <usb-device vendor-id="6235" product-id="1568" />
+    <!-- Compro Videomate U650F -->
+    <usb-device vendor-id="6235" product-id="1616" />
+    <!-- Compro Videomate U680F -->
+    <usb-device vendor-id="6235" product-id="1664" />
+    <!-- GIGABYTE GT-U7300 -->
+    <usb-device vendor-id="7040" product-id="54163" />
+    <!-- DIKOM USB-DVBT HD -->
+    <usb-device vendor-id="7040" product-id="54164" />
+    <!-- Peak 102569AGPK -->
+    <usb-device vendor-id="7040" product-id="54165" />
+    <!-- KWorld KW-UB450-T USB DVB-T Pico TV -->
+    <usb-device vendor-id="7040" product-id="54167" />
+    <!-- Zaapa ZT-MINDVBZP -->
+    <usb-device vendor-id="7040" product-id="54168" />
+    <!-- SVEON STV20 DVB-T USB & FM -->
+    <usb-device vendor-id="7040" product-id="54173" />
+    <!-- Twintech UT-40 -->
+    <usb-device vendor-id="7040" product-id="54180" />
+    <!-- ASUS U3100MINI_PLUS_V2 -->
+    <usb-device vendor-id="7040" product-id="54184" />
+    <!-- SVEON STV27 DVB-T USB & FM -->
+    <usb-device vendor-id="7040" product-id="54191" />
+    <!-- SVEON STV21 DVB-T USB & FM -->
+    <usb-device vendor-id="7040" product-id="54192" />
+    <!-- Dexatek DK DVB-T Dongle (Logilink VG0002A) -->
+    <usb-device vendor-id="7449" product-id="4353" />
+    <!-- Dexatek DK DVB-T Dongle (MSI DigiVox mini II V3.0) -->
+    <usb-device vendor-id="7449" product-id="4354" />
+    <!-- Dexatek Technology Ltd. DK 5217 DVB-T Dongle -->
+    <usb-device vendor-id="7449" product-id="4355" />
+    <!-- MSI DigiVox Micro HD -->
+    <usb-device vendor-id="7449" product-id="4356" />
+    <!-- Sweex DVB-T USB -->
+    <usb-device vendor-id="8013" product-id="43011" />
+    <!-- GTek T803 -->
+    <usb-device vendor-id="8013" product-id="47107" />
+    <!-- Lifeview LV5TDeluxe -->
+    <usb-device vendor-id="8013" product-id="51203" />
+    <!-- MyGica TD312 -->
+    <usb-device vendor-id="8013" product-id="53894" />
+    <!-- PROlectrix DV107669 -->
+    <usb-device vendor-id="8013" product-id="55299" />
 </resources>
