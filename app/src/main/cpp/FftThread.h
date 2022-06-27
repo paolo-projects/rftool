@@ -143,7 +143,7 @@ void FftThread::updateBitmap(const std::array<jdouble, N> &data, size_t count) {
         int fftIndex = (int) round(i * factor);
         double magnitude = sqrt(sqr(fftDataBuffer[fftIndex]) + sqr(fftDataBuffer[fftIndex + 1]));
 
-        jint color = colorMap->getColor((magnitude - minFFT) / maxFFT);
+        jint color = colorMap->getColor((magnitude - minFFT) / (maxFFT - minFFT));
         bitmapPixels[i] = color;
     }
 
