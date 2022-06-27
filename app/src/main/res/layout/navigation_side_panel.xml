@@ -8,17 +8,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="8dp"
-        android:paddingBottom="8dp">
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/current_device"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/no_device_connected"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textAllCaps="true" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tf_sample_rate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Sample Rate"
+            android:hint="@string/sample_rate"
             app:startIconDrawable="@drawable/ic_baseline_tune_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -32,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Tuned Frequency"
+            android:hint="@string/tuned_frequency"
             app:startIconDrawable="@drawable/ic_baseline_radio_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -46,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Gain"
+            android:hint="@string/gain"
             app:startIconDrawable="@drawable/ic_baseline_signal_cellular_alt_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -60,7 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Frequency offset (ppm)"
+            android:hint="@string/frequency_offset_ppm"
             app:startIconDrawable="@drawable/ic_baseline_graphic_eq_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -75,7 +83,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Color map"
+            android:hint="@string/color_map"
             app:startIconDrawable="@drawable/ic_baseline_color_lens_24">
 
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -91,20 +99,22 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="8dp"
-            android:text="Apply" />
+            android:text="@string/apply" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="Signal AutoRec"
-            android:textStyle="bold" />
+            android:text="@string/signal_autorec"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textAllCaps="true"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/sw_auto_rec"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Enable Auto-Recording" />
+            android:text="@string/enable_auto_recording" />
 
 
         <com.google.android.material.textfield.TextInputLayout
@@ -112,7 +122,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Auto-Rec Threshold"
+            android:hint="@string/auto_rec_threshold"
             app:startIconDrawable="@drawable/ic_baseline_fiber_manual_record_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -126,7 +136,7 @@
             android:id="@+id/tf_auto_rec_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Auto-Rec Recording Time (ms)"
+            android:hint="@string/auto_rec_recording_time_ms"
             android:layout_marginBottom="8dp"
             app:startIconDrawable="@drawable/ic_baseline_timer_24">
 
@@ -141,7 +151,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="Apply" />
+            android:text="@string/apply" />
 
 
     </androidx.appcompat.widget.LinearLayoutCompat>

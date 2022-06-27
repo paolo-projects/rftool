@@ -9,7 +9,7 @@ class UsbDevicesRetriever(context: Context, id: Int) {
         private const val TAG = "UsbDevicesRetriever"
     }
 
-    data class UsbDeviceSpecs(val vid: Int, val pid: Int)
+    data class UsbDeviceSpecs(val vid: Int, val pid: Int, val name: String?)
 
     private val devices = ArrayList<UsbDeviceSpecs>()
 
@@ -29,6 +29,7 @@ class UsbDevicesRetriever(context: Context, id: Int) {
                         val attrCount = xmlResource.attributeCount
                         var vidVal: String? = null
                         var pidVal: String? = null
+                        var devName: String? = null
 
                         for(i in 0 until attrCount) {
                             val attrName = xmlResource.getAttributeName(i)
@@ -36,6 +37,8 @@ class UsbDevicesRetriever(context: Context, id: Int) {
                                 vidVal = xmlResource.getAttributeValue(i)
                             } else if (attrName == "product-id") {
                                 pidVal = xmlResource.getAttributeValue(i)
+                            } else if (attrName == "device-name") {
+                                devName = xmlResource.getAttributeValue(i)
                             }
                         }
                         val vid = Integer.parseInt(vidVal ?: "")
@@ -44,7 +47,7 @@ class UsbDevicesRetriever(context: Context, id: Int) {
 
                         devices.add(
                             UsbDeviceSpecs(
-                                vid, pid
+                                vid, pid, devName
                             )
                         )
                     } catch(exc: NumberFormatException) {
@@ -58,4 +61,6 @@ class UsbDevicesRetriever(context: Context, id: Int) {
     }
 
     fun includes(vid: Int, pid: Int): Boolean = devices.firstOrNull { it.vid == vid && it.pid == pid } != null
+
+    fun get(vid: Int, pid: Int): UsbDeviceSpecs = devices.first { it.vid == vid && it.pid == pid }
 }

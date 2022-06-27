@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.tools.rftool.repository.AppConfigurationRepository
 import com.tools.rftool.rtlsdr.Recorder
 import com.tools.rftool.rtlsdr.RtlSdr
+import com.tools.rftool.util.usb.UsbDevicesRetriever
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +42,9 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
 
     private val _recordingEvents = MutableStateFlow(Recorder.RecordingEvent.FINISHED)
     val recordingEvents = _recordingEvents.asStateFlow()
+
+    private val _currentDeviceSpecs = MutableStateFlow<UsbDevicesRetriever.UsbDeviceSpecs?>(null)
+    val currentDeviceSpecs = _currentDeviceSpecs.asStateFlow()
 
     @Inject
     lateinit var appConfigurationRepository: AppConfigurationRepository
@@ -82,6 +86,7 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
 
     fun initDevice(
         device: UsbDevice,
+        deviceSpecs: UsbDevicesRetriever.UsbDeviceSpecs,
         connection: UsbDeviceConnection,
         sampleRate: Int,
         centerFrequency: Int,
@@ -93,7 +98,15 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
         usbDevice = device
         usbDeviceConnection = connection
         rtlSdr =
-            RtlSdr(connection.fileDescriptor, this, sampleRate, centerFrequency, ppmError, gain, colorMap)
+            RtlSdr(
+                connection.fileDescriptor,
+                this,
+                sampleRate,
+                centerFrequency,
+                ppmError,
+                gain,
+                colorMap
+            )
         this.sampleRate = sampleRate
         this.centerFrequency = centerFrequency
         this.gain = gain
@@ -104,6 +117,9 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
             rtlSdr!!.bitmap.collect {
                 _fftBitmap.emit(it)
             }
+        }
+        viewModelScope.launch {
+            _currentDeviceSpecs.emit(deviceSpecs)
         }
     }
 
@@ -168,7 +184,11 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
 
     override fun onFftMax(fftMax: Double) {
         if (appConfigurationRepository.autoRecEnabled.value && fftMax > appConfigurationRepository.autoRecThreshold.value) {
-            recorder.record(appConfigurationRepository.autoRecTimeMs.value, sampleRate, centerFrequency)
+            recorder.record(
+                appConfigurationRepository.autoRecTimeMs.value,
+                sampleRate,
+                centerFrequency
+            )
         }
         viewModelScope.launch {
             _fftSignalMax.emit(fftMax)

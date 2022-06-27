@@ -56,6 +56,8 @@ class MainActivity :
     private lateinit var autoRecApplyAnimation: ButtonAnimation
     private lateinit var rfApplyAnimation: ButtonAnimation
 
+    private lateinit var deviceFilterRetriever: UsbDevicesRetriever
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -78,6 +80,7 @@ class MainActivity :
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_baseline_menu_24)
 
+        deviceFilterRetriever = UsbDevicesRetriever(this, R.xml.device_filter)
 
         val sampleRateValidator = SampleRateInputValidator(this, appConfiguration.sampleRate.value)
         val frequencyValidator =
@@ -179,6 +182,15 @@ class MainActivity :
                             View.VISIBLE
                         Recorder.RecordingEvent.FINISHED -> binding.recordingProgressBar.visibility =
                             View.INVISIBLE
+                    }
+                }
+            }
+            async {
+                sdrDeviceViewModel.currentDeviceSpecs.collect {
+                    if(it == null) {
+                        binding.navigationViewLayout.currentDevice.text = getString(R.string.no_device_connected)
+                    } else {
+                        binding.navigationViewLayout.currentDevice.text = it.name
                     }
                 }
             }
@@ -329,6 +341,7 @@ class MainActivity :
 
         sdrDeviceViewModel.initDevice(
             device,
+            deviceFilterRetriever.get(device.vendorId, device.productId),
             connection,
             appConfiguration.sampleRate.value,
             appConfiguration.centerFrequency.value,
@@ -352,7 +365,6 @@ class MainActivity :
 
     private fun attemptConnectDevice() {
         val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-        val deviceFilterRetriever = UsbDevicesRetriever(this, R.xml.device_filter)
         val device = usbManager.deviceList.values.firstOrNull {
             deviceFilterRetriever.includes(it.vendorId, it.productId)
         }
