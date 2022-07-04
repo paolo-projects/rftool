@@ -21,30 +21,32 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        sdr-lib.cpp FFTLib.cpp FftThread.cpp RecorderThread.cpp signalanalysis.cpp SignalProcessing.cpp)
+        src/sdr-lib.cpp src/fft/FFTLib.cpp src/fft/FftThread.cpp src/RecorderThread.cpp
+        src/signalanalysis.cpp src/SignalProcessing.cpp)
+
+target_include_directories(rftool PUBLIC include)
 
 message(STATUS "Target arch for LibUSB: ${CMAKE_ANDROID_ARCH_ABI}")
 
-#add_library(libusb-${CMAKE_ANDROID_ARCH_ABI} SHARED IMPORTED)
-#set_target_properties(libusb-${CMAKE_ANDROID_ARCH_ABI}
-#        PROPERTIES
-#        IMPORTED_SONAME libusb/libs/${CMAKE_ANDROID_ARCH_ABI}/libusb1.0.so)
+add_library(rtlsdr_shared SHARED libs/librtlsdr/src/librtlsdr.c libs/librtlsdr/src/tuner_e4k.c
+        libs/librtlsdr/src/tuner_fc0012.c libs/librtlsdr/src/tuner_fc0013.c
+        libs/librtlsdr/src/tuner_fc2580.c libs/librtlsdr/src/tuner_r82xx.c)
 
-add_library(rtlsdr_shared SHARED librtlsdr/src/librtlsdr.c librtlsdr/src/tuner_e4k.c librtlsdr/src/tuner_fc0012.c
-        librtlsdr/src/tuner_fc0013.c librtlsdr/src/tuner_fc2580.c librtlsdr/src/tuner_r82xx.c)
+target_link_libraries(rtlsdr_shared
+        "${PROJECT_SOURCE_DIR}/libs/libusb/android-build/${CMAKE_ANDROID_ARCH_ABI}/libusb1.0.so")
 
-target_link_libraries(rtlsdr_shared "${PROJECT_SOURCE_DIR}/libusb/android-build/${CMAKE_ANDROID_ARCH_ABI}/libusb1.0.so")
-
-target_include_directories(rtlsdr_shared PUBLIC librtlsdr/include)
-target_include_directories(rtlsdr_shared PUBLIC libusb/libusb)
+target_include_directories(rtlsdr_shared PUBLIC libs/librtlsdr/include)
+target_include_directories(rtlsdr_shared PUBLIC libs/libusb/libusb)
 
 target_link_libraries(rftool rtlsdr_shared)
-target_include_directories(rftool PUBLIC librtlsdr/include)
+target_include_directories(rftool PUBLIC libs/librtlsdr/include)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/fftw)
+target_include_directories(rftool PUBLIC libs/readerwriterqueue)
+
+add_subdirectory(libs/fftw)
 target_link_libraries(rftool fftw3)
-target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw)
-target_include_directories(rftool PUBLIC ${PROJECT_SOURCE_DIR}/fftw/api)
+target_include_directories(rftool PUBLIC libs/fftw)
+target_include_directories(rftool PUBLIC libs/fftw/api)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

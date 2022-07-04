@@ -5,13 +5,11 @@ import com.tools.rftool.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.absoluteValue
 
 class AppConfigurationRepository @Inject constructor(@ApplicationContext private val context: Context) {
     companion object {
@@ -24,6 +22,8 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
         private const val PREFS_AUTO_RECORD_ENABLED = "rf_auto_rec_enabled"
         private const val PREFS_AUTO_RECORD_THRESHOLD = "rf_auto_rec_threshold"
         private const val PREFS_AUTO_RECORD_TIME = "rf_auto_rec_time"
+        private const val PREFS_FFT_N = "rf_fft_n"
+
     }
 
     private val sharedPreferences = context.getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE)
@@ -32,12 +32,16 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
         context.resources.getInteger(R.integer.default_center_frequency)
     private val defaultGain = context.resources.getInteger(R.integer.default_gain)
     private val defaultPpmError = context.resources.getInteger(R.integer.default_ppm_error)
-    private val defaultColorMap = 0
-    private val defaultAutoRecEnabled = false
-    private val defaultAutoRecThreshold = 50f
-    private val defaultAutoRecTimeMs = 1000
+    private val defaultColorMap = context.resources.getInteger(R.integer.default_color_map)
+    private val defaultAutoRecEnabled = context.resources.getBoolean(R.bool.default_auto_rec_on)
+    private val defaultAutoRecThreshold = context.resources.getDimension(R.dimen.default_auto_rec_threshold)
+    private val defaultAutoRecTimeMs =
+        context.resources.getInteger(R.integer.default_auto_rec_time_ms)
+    private val defaultFftN = context.resources.getInteger(R.integer.default_fft_n)
 
-    private val dispatcher = Dispatchers.Main
+    private val validFftNs = context.resources.getIntArray(R.array.valid_fft_n)
+
+    var dispatcher = Dispatchers.Main
 
     private val _sampleRate =
         MutableStateFlow(sharedPreferences.getInt(PREFS_SAMPLE_RATE, defaultSampleRate))
@@ -60,6 +64,7 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
     )
     private val _autoRecTimeMs =
         MutableStateFlow(sharedPreferences.getInt(PREFS_AUTO_RECORD_TIME, defaultAutoRecTimeMs))
+    private val _fftN = MutableStateFlow(sharedPreferences.getInt(PREFS_FFT_N, defaultFftN))
 
     val sampleRate = _sampleRate.asStateFlow()
     val centerFrequency = _centerFrequency.asStateFlow()
@@ -69,6 +74,7 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
     val autoRecEnabled = _autoRecEnabled.asStateFlow()
     val autoRecThreshold = _autoRecThreshold.asStateFlow()
     val autoRecTimeMs = _autoRecTimeMs.asStateFlow()
+    val fftN = _fftN.asStateFlow()
 
     fun setSampleRate(value: Int) {
         CoroutineScope(dispatcher).launch {
@@ -123,6 +129,16 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
         CoroutineScope(dispatcher).launch {
             sharedPreferences.edit().putInt(PREFS_AUTO_RECORD_TIME, value).commit()
             _autoRecTimeMs.emit(value)
+        }
+    }
+
+    fun setFftN(value: Int) {
+        val nearestGoodValue = validFftNs.fold(validFftNs[0]) { acc, v ->
+            if ((v - value).absoluteValue < (acc - value).absoluteValue) v else acc
+        }
+        CoroutineScope(dispatcher).launch {
+            sharedPreferences.edit().putInt(PREFS_FFT_N, nearestGoodValue).commit()
+            _fftN.emit(nearestGoodValue)
         }
     }
 }

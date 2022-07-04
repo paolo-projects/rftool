@@ -19,7 +19,8 @@ class RtlSdr(
     centerFrequency: Int,
     ppmError: Int = 0,
     gain: Int = 40,
-    colorMap: Int = 0
+    colorMap: Int = 0,
+    fftSamples: Int = 1024
 ) {
     companion object {
         private const val TAG = "RtlSdr"
@@ -48,7 +49,7 @@ class RtlSdr(
         canvas.drawPaint(paint)
         val mapName = ColorMaps.getColorMap(colorMap)
 
-        if (!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain, mapName)) {
+        if (!open(deviceIndex, sampleRate, centerFrequency, ppmError, gain, mapName, fftSamples)) {
             throw RtlSdrError("Failed to open the SDR device")
         }
     }
@@ -83,7 +84,8 @@ class RtlSdr(
     private external fun startDataReading(size: Int)
     private external fun stopDataReading()
 
-    private external fun setColorMap(colorMap: String): Unit
+    private external fun setColorMap(colorMap: String)
+    private external fun setFftN(fftN: Int)
 
     private external fun close()
 
@@ -202,6 +204,12 @@ class RtlSdr(
     fun setFftColorMap(colorMap: Int) {
         if (!deviceClosed) {
             setColorMap(ColorMaps.getColorMap(colorMap))
+        }
+    }
+
+    fun setDeviceFftN(fftN: Int) {
+        if(!deviceClosed) {
+            setFftN(fftN)
         }
     }
 

@@ -7,6 +7,19 @@
     <integer name="default_gain">38</integer>
     <!-- 5 Ppm (f = 1 MHz -> ppm = 1 Hz) -->
     <integer name="default_ppm_error">5</integer>
+    <integer name="default_color_map">0</integer>
+    <integer name="default_auto_rec_time_ms">1000</integer>
+    <integer name="default_fft_n">1024</integer>
+
+    <integer-array name="valid_fft_n">
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>3072</item>
+        <item>4096</item>
+        <item>6144</item>
+        <item>8192</item>
+    </integer-array>
 
     <integer name="tuner_frequency_min">24000000</integer>
     <integer name="tuner_frequency_max">1766000000</integer>

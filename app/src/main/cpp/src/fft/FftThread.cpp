@@ -1,7 +1,7 @@
 //
 // Created by paolo on 15/06/22.
 //
-#include "FftThread.h"
+#include "fft/FftThread.h"
 
 FftThread::FftThread(JNIEnv* env, jobject instance, int nSamples)
     : nSamples(nSamples), env(env), instance(env->NewGlobalRef(instance)), fftLib(nSamples) {
@@ -31,6 +31,11 @@ void FftThread::start() {
     if(fftThread == nullptr) {
         fftThread = std::make_unique<std::thread>(&FftThread::executor, this);
     }
+}
+
+void FftThread::setFftN(int fftN) {
+    fftLib.setFftN(fftN);
+    nSamples = fftN;
 }
 
 void FftThread::executor() {

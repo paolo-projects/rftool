@@ -266,6 +266,13 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_startDataReading
     }
 }
 
+extern "C" JNIEXPORT void JNICALL
+    Java_com_tools_rftool_rtlsdr_RtlSdr_setFftN(JNIEnv* env, jobject _this, jint fftN) {
+    if(fftTrd != nullptr) {
+        fftTrd->setFftN(fftN);
+    }
+}
+
 void dataReadingExecutor(JavaVM *jvm, JNIEnv *env) {
     JavaVMAttachArgs args;
     args.name = nullptr;

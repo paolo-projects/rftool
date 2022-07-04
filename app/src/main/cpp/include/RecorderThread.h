@@ -17,7 +17,7 @@
 #include <functional>
 #include <android/log.h>
 
-#include "readerwriterqueue/readerwriterqueue.h"
+#include <readerwriterqueue.h>
 
 class RecorderThread {
 public:

@@ -1,12 +1,12 @@
 [submodule "app/src/main/cpp/readerwriterqueue"]
-	path = app/src/main/cpp/readerwriterqueue
+	path = app/src/main/cpp/libs/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue
 [submodule "app/src/main/cpp/libusb"]
-	path = app/src/main/cpp/libusb
+	path = app/src/main/cpp/libs/libusb
 	url = https://github.com/libusb/libusb
 [submodule "app/src/main/cpp/librtlsdr"]
-	path = app/src/main/cpp/librtlsdr
+	path = app/src/main/cpp/libs/librtlsdr
 	url = https://github.com/paolo-projects/librtlsdr-android
 [submodule "app/src/main/cpp/fftw"]
-	path = app/src/main/cpp/fftw
+	path = app/src/main/cpp/libs/fftw
 	url = https://github.com/paolo-projects/fftw-source

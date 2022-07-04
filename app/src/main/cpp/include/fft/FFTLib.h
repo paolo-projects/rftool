@@ -9,6 +9,7 @@
 #include <fftw3.h>
 #include <complex>
 #include <vector>
+#include <mutex>
 
 /**
  * Abstraction over the fft implementation
@@ -25,11 +26,15 @@ struct FFTLib {
     static void
     executeFft(const std::vector<jdouble> &data, int nSamples, std::vector<jdouble> &outputBuffer);
 
+    void setFftN(int fftN);
+
 private:
     int fftSize;
     fftw_plan fftPlan;
     fftw_complex *inputFft;
     fftw_complex *outputFft;
+
+    std::mutex mtx;
 };
 
 template<size_t N>
@@ -37,6 +42,7 @@ void FFTLib::executeFft(const std::array<jdouble, N> &data, size_t count,
                         std::vector<jdouble> &outputBuffer) {
     double decimationFactor = (double) count / (2 * fftSize);
 
+    std::unique_lock<std::mutex> lock(mtx);
     for (int i = 0; i < fftSize; i++) {
         int n = (int) round(decimationFactor * i);
         inputFft[i][0] = data[n * 2];

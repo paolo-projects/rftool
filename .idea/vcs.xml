@@ -2,9 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/fftw" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/librtlsdr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/libusb" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/readerwriterqueue" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/libs/fftw" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/libs/librtlsdr" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/libs/libusb" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/src/main/cpp/libs/readerwriterqueue" vcs="Git" />
   </component>
 </project>

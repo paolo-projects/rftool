@@ -16,7 +16,7 @@
 #include <libusb.h>
 #include <memory>
 
-#include "FftThread.h"
+#include "fft/FftThread.h"
 #include "RecorderThread.h"
 
 int nearestGain(int targetGain);

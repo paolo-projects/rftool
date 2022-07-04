@@ -14,8 +14,8 @@
 #include <array>
 
 #include "FFTLib.h"
-#include "ColorMap.h"
-#include "ThreadSafeBucket.h"
+#include "../ColorMap.h"
+#include "../ThreadSafeBucket.h"
 
 #define sqr(x) ((x)*(x))
 
@@ -44,6 +44,7 @@ public:
     void stop();
 
     void setColorMap(COLOR_MAP_TYPE mapType);
+    void setFftN(int fftN);
 
 private:
     void executor();
@@ -138,8 +139,9 @@ void FftThread::updateBitmap(const std::array<jdouble, N> &data, size_t count) {
     std::rotate(fftDataBuffer.begin(), fftDataBuffer.begin() + fftDataBuffer.size() / 2, fftDataBuffer.end());
 
     // Assign the FFT to the first row of the bitmap through a color-map algorithm
-    double factor = (double) (fftDataBuffer.size() - 2) / (bitmapWidth - 1);
+    double factor = (double) (fftDataBuffer.size() - 1) / (bitmapWidth - 1);
     for (int i = 0; i < bitmapWidth; i++) {
+        // Here the pixels [0, width - 1] are mapped linearly to the FFT values [0, N-1]
         int fftIndex = (int) round(i * factor);
         double magnitude = sqrt(sqr(fftDataBuffer[fftIndex]) + sqr(fftDataBuffer[fftIndex + 1]));
 

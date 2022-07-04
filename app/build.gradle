@@ -85,15 +85,19 @@ dependencies {
     testImplementation 'com.google.dagger:hilt-android-testing:2.42'
     kaptTest 'com.google.dagger:hilt-compiler:2.42'
     androidTestImplementation 'androidx.benchmark:benchmark-junit4:1.1.0'
+    testImplementation "org.mockito:mockito-core:4.6.1"
+    // Optional -- mockito-kotlin
+    testImplementation "org.mockito.kotlin:mockito-kotlin:4.0.0"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.3"
 }
 
 task buildLibUsbNdk(type: Exec) {
     def ndkDir = android.ndkDirectory
     executable = "$ndkDir/ndk-build"
     args = ['NDK_PROJECT_PATH=build/intermediates/ndk',
-            'NDK_LIBS_OUT=src/main/cpp/libusb/android-build',
-            'APP_BUILD_SCRIPT=src/main/cpp/libusb/android/jni/Android.mk',
-            'NDK_APPLICATION=src/main/cpp/libusb/android/jni/Application.mk'
+            'NDK_LIBS_OUT=src/main/cpp/libs/libusb/android-build',
+            'APP_BUILD_SCRIPT=src/main/cpp/libs/libusb/android/jni/Android.mk',
+            'NDK_APPLICATION=src/main/cpp/libs/libusb/android/jni/Application.mk'
     ]
 }
 

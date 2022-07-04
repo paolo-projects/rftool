@@ -143,6 +143,15 @@ class MainActivity :
                     binding.navigationViewLayout.tfAutoRecTime.editText?.setText(it.toString())
                 }
             }
+            async {
+                appConfiguration.fftN.collect {
+                    val textView =
+                        (binding.navigationViewLayout.tfFftN.editText!! as MaterialAutoCompleteTextView)
+                    textView.setText(
+                        it.toString()
+                    )
+                }
+            }
         }
 
         binding.navigationViewLayout.tfSampleRate.editText!!.setFocusLostValidator(
@@ -276,6 +285,7 @@ class MainActivity :
 
                 val colorMapTextView =
                     binding.navigationViewLayout.tfColorMap.editText!! as MaterialAutoCompleteTextView
+
                 var colorMap = 0
                 for (i in 0 until colorMapTextView.adapter.count) {
                     if (colorMapTextView.text.toString() == colorMapTextView.adapter.getItem(i)
@@ -286,11 +296,14 @@ class MainActivity :
                     }
                 }
 
+                val fftNTextView = binding.navigationViewLayout.tfFftN.editText!! as MaterialAutoCompleteTextView
+
                 appConfiguration.setSampleRate(sampleRate)
                 appConfiguration.setCenterFrequency(centerFrequency)
                 appConfiguration.setGain(gain)
                 appConfiguration.setPpmError(ppmError)
                 appConfiguration.setColorMap(colorMap)
+                appConfiguration.setFftN(fftNTextView.text.toString().toInt())
 
                 sdrDeviceViewModel.updateParams(sampleRate, centerFrequency, gain)
                 sdrDeviceViewModel.setColorMap(colorMap)

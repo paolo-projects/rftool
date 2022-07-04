@@ -93,6 +93,22 @@
                 app:simpleItems="@array/color_maps" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tf_fft_n"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="@string/fft_samples"
+            app:startIconDrawable="@drawable/ic_baseline_color_lens_24">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                app:simpleItems="@array/valid_fft_n" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <Button
             android:id="@+id/btn_rf_apply"
             android:layout_width="wrap_content"

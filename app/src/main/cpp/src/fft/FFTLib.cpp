@@ -2,7 +2,7 @@
 // Created by paolo on 13/06/22.
 //
 
-#include "FFTLib.h"
+#include "fft/FFTLib.h"
 
 std::vector<jdouble> output;
 std::vector<jdouble> outputData;
@@ -37,6 +37,16 @@ FFTLib::~FFTLib() {
     fftw_destroy_plan(fftPlan);
     fftw_free(inputFft);
     fftw_free(outputFft);
+}
+
+void FFTLib::setFftN(int fftN) {
+    std::unique_lock<std::mutex> lock(mtx);
+    fftw_free(inputFft);
+    fftw_free(outputFft);
+
+    inputFft = (fftw_complex*)fftw_malloc(fftN * sizeof(fftw_complex));
+    outputFft = (fftw_complex*)fftw_malloc(fftN * sizeof(fftw_complex));
+    fftSize = fftN;
 }
 
 void FFTLib::executeFft(const std::vector<jdouble> &data, int nSamples,

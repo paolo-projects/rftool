@@ -5,7 +5,7 @@
 #include "RecorderThread.h"
 
 RecorderThread::RecorderThread(JNIEnv *env)
-        : env(env) {
+        : env(env), queuedData() {
     env->GetJavaVM(&jvm);
 
     jclass recorderClass = env->FindClass("com/tools/rftool/rtlsdr/Recorder");

@@ -5,7 +5,7 @@
 #ifndef RFTOOL_BANDPASS_H
 #define RFTOOL_BANDPASS_H
 
-#include "FFTLib.h"
+#include "fft/FFTLib.h"
 #include <cmath>
 #include "ComplexNumber.h"
 
