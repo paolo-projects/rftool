@@ -10,11 +10,13 @@
         <entry key="app/src/main/res/drawable/ic_baseline_delete_sweep_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_menu_24.xml" value="0.1755" />
         <entry key="app/src/main/res/drawable/ic_baseline_play_arrow_24.xml" value="0.1385" />
+        <entry key="app/src/main/res/drawable/ic_baseline_radio_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_share_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_stop_24.xml" value="0.1385" />
         <entry key="app/src/main/res/drawable/ic_baseline_usb_24.xml" value="0.1385" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/layout/fragment_fft.xml" value="0.18072916666666666" />
+        <entry key="app/src/main/res/layout/fragment_fm_playback.xml" value="0.3333333333333333" />
         <entry key="app/src/main/res/layout/fragment_recording_details.xml" value="0.18072916666666666" />
         <entry key="app/src/main/res/layout/fragment_recording_list.xml" value="0.18072916666666666" />
         <entry key="app/src/main/res/layout/fragment_recordings.xml" value="0.1796875" />

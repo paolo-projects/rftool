@@ -10,3 +10,9 @@
 [submodule "app/src/main/cpp/fftw"]
 	path = app/src/main/cpp/libs/fftw
 	url = https://github.com/paolo-projects/fftw-source
+[submodule "app/src/main/cpp/libs/fm-demod"]
+	path = app/src/main/cpp/libs/fm-demod
+	url = https://github.com/paolo-projects/fm-demod
+[submodule "app/src/main/cpp/libs/oboe"]
+	path = app/src/main/cpp/libs/oboe
+	url = https://github.com/google/oboe

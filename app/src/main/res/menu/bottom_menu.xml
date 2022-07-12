@@ -11,4 +11,8 @@
         android:id="@+id/bottom_navigation_recordings"
         android:title="@string/menu_recordings"
         android:icon="@drawable/ic_baseline_sd_storage_24" />
+    <item
+        android:id="@+id/bottom_navigation_fm"
+        android:title="@string/menu_fm_radio"
+        android:icon="@drawable/ic_baseline_radio_24" />
 </menu>

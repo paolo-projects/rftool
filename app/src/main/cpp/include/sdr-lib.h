@@ -18,6 +18,8 @@
 
 #include "fft/FftThread.h"
 #include "RecorderThread.h"
+#include "FmDemodManager.h"
+#include "common.h"
 
 int nearestGain(int targetGain);
 void setColorMap(const char* colorMap);

@@ -1,5 +1,8 @@
 #include "sdr-lib.h"
 
+// Extern
+extern FmDemodManager fmDemodManager;
+
 // Private variables
 const char *TAG = "RfToolLib";
 rtlsdr_dev *device = nullptr;
@@ -11,7 +14,7 @@ int dataSize = 5120;
 bool dataReading = false;
 std::mutex rtlSdrMtx;
 // Input array set to maximum size that can be read from the USB device
-std::array<uint8_t, (256 * (1 << 14))> sdrDeviceReadBuffer;
+std::array<uint8_t, RTLSDR_MAX_READ_BUFFER> sdrDeviceReadBuffer;
 
 constexpr jdouble adcHalf = 255.0 / 2;
 std::map<libusb_error, std::string> libusbErrorCodes{
@@ -75,6 +78,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_open(JNIEnv *env, jobject _this, jint fileDe
         rtlsdr_close(device);
         return false;
     }
+    fmDemodManager.updateSampleRate(sampleRate);
     __android_log_print(ANDROID_LOG_DEBUG, TAG, "Sample rate set successfully to %d Hz",
                         sampleRate);
 
@@ -145,6 +149,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_setSampleRate(JNIEnv *env, jobject _this, ji
         __android_log_write(ANDROID_LOG_ERROR, TAG, "Failed to set sample rate");
         return false;
     } else {
+        fmDemodManager.updateSampleRate(sampleRate);
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "Sample rate set successfully to %d Hz",
                             sampleRate);
         return true;
@@ -303,7 +308,7 @@ Java_com_tools_rftool_rtlsdr_RtlSdr_stopDataReading
 }
 
 const void readData(jint size) {
-    int goodSize = std::min((int) ceil(size / 512) * 512, 256 * (1 << 14));
+    int goodSize = std::min((int) ceil(size / 512) * 512, RTLSDR_MAX_READ_BUFFER);
     //buffer.resize(goodSize);
 
     namespace chr = std::chrono;
@@ -325,7 +330,9 @@ const void readData(jint size) {
     auto start_time = hrc::now();
     recorderThread->appendData(sdrDeviceReadBuffer, bytesRead);
     fftTrd->push(sdrDeviceReadBuffer, bytesRead);
+    fmDemodManager.pushFmData(sdrDeviceReadBuffer, bytesRead);
     auto end_time = hrc::now();
+
     __android_log_print(ANDROID_LOG_VERBOSE, TAG, "recorderthread, fft overhead = %lld ms",
                         chr::duration_cast<chr::milliseconds>(end_time - start_time).count());
 }

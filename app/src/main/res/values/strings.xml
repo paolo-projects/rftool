@@ -39,6 +39,11 @@
     <string name="auto_rec_threshold">Auto-Rec Threshold</string>
     <string name="auto_rec_recording_time_ms">Auto-Rec Recording Time (ms)</string>
     <string name="fft_samples">FFT Samples</string>
+    <string name="menu_fm_playback_start">Start FM Playback</string>
+    <string name="menu_fm_playback_stop">Stop FM Playback</string>
+    <string name="enable_fm_playback">Enable FM Playback</string>
+    <string name="gain_db">Gain (dB)</string>
+    <string name="menu_fm_radio">FM Radio</string>
 
     <string-array name="color_maps">
         <item>Grayscale</item>

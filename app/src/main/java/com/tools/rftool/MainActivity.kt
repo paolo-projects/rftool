@@ -324,6 +324,7 @@ class MainActivity :
                 0 -> R.id.bottom_navigation_fft
                 1 -> R.id.bottom_navigation_signal_decoder
                 2 -> R.id.bottom_navigation_recordings
+                3 -> R.id.bottom_navigation_fm
                 else -> 0
             }
         }
@@ -341,6 +342,10 @@ class MainActivity :
             }
             R.id.bottom_navigation_recordings -> {
                 binding.viewPager.currentItem = 2
+                true
+            }
+            R.id.bottom_navigation_fm -> {
+                binding.viewPager.currentItem = 3
                 true
             }
             else -> false

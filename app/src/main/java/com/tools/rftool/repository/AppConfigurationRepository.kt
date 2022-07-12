@@ -1,6 +1,7 @@
 package com.tools.rftool.repository
 
 import android.content.Context
+import android.util.TypedValue
 import com.tools.rftool.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,10 @@ class AppConfigurationRepository @Inject constructor(@ApplicationContext private
     private val defaultPpmError = context.resources.getInteger(R.integer.default_ppm_error)
     private val defaultColorMap = context.resources.getInteger(R.integer.default_color_map)
     private val defaultAutoRecEnabled = context.resources.getBoolean(R.bool.default_auto_rec_on)
-    private val defaultAutoRecThreshold = context.resources.getDimension(R.dimen.default_auto_rec_threshold)
+    private val defaultAutoRecThreshold = TypedValue().let {
+        context.resources.getValue(R.dimen.default_auto_rec_threshold, it, true)
+        it.float
+    }
     private val defaultAutoRecTimeMs =
         context.resources.getInteger(R.integer.default_auto_rec_time_ms)
     private val defaultFftN = context.resources.getInteger(R.integer.default_fft_n)

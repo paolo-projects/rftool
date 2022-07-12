@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="default_auto_rec_threshold">50</dimen>
+    <item name="default_auto_rec_threshold" type="dimen" format="float">50.0</item>
 </resources>

@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.tools.rftool.fragment.FftFragment
+import com.tools.rftool.fragment.FmPlaybackFragment
 import com.tools.rftool.fragment.RecordingsFragment
 import com.tools.rftool.fragment.SignalFragment
 import kotlin.reflect.KClass
@@ -18,7 +19,8 @@ class MainActivityPagerAdapter(
     private val frags = arrayOf(
         FftFragment::class,
         SignalFragment::class,
-        RecordingsFragment::class
+        RecordingsFragment::class,
+        FmPlaybackFragment::class,
     )
 
     override fun getItemCount(): Int = frags.size

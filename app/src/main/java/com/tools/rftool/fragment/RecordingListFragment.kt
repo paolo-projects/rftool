@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.IllegalArgumentException
 
-class RecordingListFragment private constructor() : Fragment(), RecordingsRecyclerAdapter.Listener {
+class RecordingListFragment : Fragment(), RecordingsRecyclerAdapter.Listener {
 
     companion object {
         fun newInstance(): RecordingListFragment {

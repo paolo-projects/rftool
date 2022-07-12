@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.concurrent.thread
+import kotlin.math.pow
 
 @HiltViewModel
 class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val context: Context) :
@@ -71,6 +72,8 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
         private set
 
     private val recorder = Recorder(context, this)
+    var fmPlaybackEnabled = false
+        private set
 
     fun permissionsGranted() {
         viewModelScope.launch {
@@ -161,6 +164,18 @@ class SdrDeviceViewModel @Inject constructor(@ApplicationContext private val con
         viewModelScope.launch {
             _deviceConnected.emit(false)
         }
+    }
+
+    fun startFm() {
+        rtlSdr?.enableFmPlayback().also { fmPlaybackEnabled = true }
+    }
+
+    fun stopFm() {
+        rtlSdr?.disableFmPlayback().also { fmPlaybackEnabled = false }
+    }
+
+    fun setDigitalGain(decibels: Float) {
+        rtlSdr?.setPlaybackDigitalGain(10.0f.pow(decibels / 10.0f))
     }
 
     fun closeDevice() {

@@ -213,6 +213,12 @@ class RtlSdr(
         }
     }
 
+    external fun enableFmPlayback()
+
+    external fun disableFmPlayback()
+
+    external fun setPlaybackDigitalGain(digitalGain: Float)
+
     fun closeDevice() {
         close()
         deviceClosed = true
